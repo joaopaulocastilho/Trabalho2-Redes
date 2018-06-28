@@ -12,6 +12,10 @@
 #define MESSAGE_SIZE 500 // Tamanho do buffer pra guardar a mensagem
 #define PACKAGE_SIZE (MESSAGE_SIZE + 8) // 2 bytes pra guardar o destino do pacote, 2 para o remetente e 4 pra informações extras
 
+#define INF 112345678
+
+typedef struct { int id, w; }neighbor_t;
+
 void wrap_message(char package_space[], char message[], int destination_node_id, int this_node_id, int confirmation, int package_id);
 void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *id_package);
 
@@ -311,68 +315,48 @@ void unwrap_message(int *bitmask, short int *destination, short int *sender, cha
   }
 }
 
-int build_next_nodes_list(int next_nodes[MAX_ROUTERS],
-                          int routers_links[][MAX_ROUTERS],
-                          int origin_node) {
-  int distance[MAX_ROUTERS];
-  int predecessors[MAX_ROUTERS];
-  int node, i, neighbour; // Variáveis auxiliares
-
-  // Coloca -1 em todos os ancestrais
-  memset(predecessors, -1, MAX_ROUTERS * sizeof(int));
-  predecessors[origin_node] = origin_node;
-
-  // Coloca infinito nas distâncias
-  for(i = 0; i < MAX_ROUTERS; i++) { distance[i] = 0x7FFFFFFF / 2; }
-  distance[origin_node] = 0;
-
-  // Bellman-Ford
+void initialize(int node_id, int router_table[MAX_ROUTERS][MAX_ROUTERS], neighbor_t neighbors[MAX_ROUTERS], int next_nodes[MAX_ROUTERS], int *qtt_neighbors) {
+  int i, j, u, v, w;
+  *qtt_neighbors = 0;
+  //Inicia a tabela de roteamento
   for (i = 0; i < MAX_ROUTERS; i++) {
-    for (node = 1; node < MAX_ROUTERS; node++) {
-      for (neighbour = 1; neighbour < MAX_ROUTERS; neighbour++) {
-        if (routers_links[node][neighbour] != -1 &&
-            distance[node] + routers_links[node][neighbour] < distance[neighbour]) {
-
-          distance[neighbour] = distance[node] + routers_links[node][neighbour];
-          predecessors[neighbour] = node;
-        }
-      }
-    }
+    next_nodes[i] = -1;
+    for (j = 0; j < MAX_ROUTERS; j++)
+      router_table[i][j] = INF;
   }
 
-  // Constrói o caminho de ancestrais de todos os nós até o nó origem
-  for (node = 1; node < MAX_ROUTERS; node++) {
-    int node_predecessor = predecessors[node];
-
-    if (node == origin_node) { continue; }
-    if (node_predecessor == -1) { continue; }
-
-    while (predecessors[node_predecessor] != origin_node) {
-      node_predecessor = predecessors[node_predecessor];
-      predecessors[node] = node_predecessor;
+  FILE *links_file = fopen("enlaces.config", "r");
+  if (!links_file) die("Falha ao abrir arquivo de enlaces");
+  while(fscanf(links_file, "%d %d %d\n", &u, &v, &w) != EOF){
+    if (v == node_id) { v = u; u = node_id; }
+    if (u == node_id) {
+      neighbors[(*qtt_neighbors)].id = v;
+      neighbors[(*qtt_neighbors)++].w = w;
     }
   }
+  fclose(links_file);
 
-  // Os nós vizinhos do origin_node não podem tê-lo como next_node, se não o node_origin fica mandando mensagem pra ele mesmo e entra em loop infinito
-  for (node = 1; node < MAX_ROUTERS; node++) {
-    if (node != origin_node && predecessors[node] == origin_node) {
-      predecessors[node] = node;
-    }
-  }
+  //Seta os custos de um nó para ele mesmo, e o salto dele para ele mesmo
+  router_table[node_id][node_id] = 0;
+  next_nodes[node_id] = node_id;
 
-  /** Constrói o array de próximos nós.
-  Repare que eu poderia ter feito isso no loop anterior, mas decidi deixar isolado pra se caso o código acima for alterado, essa parte de baixo não precisa ser. */
-  for (int i = 0; i < MAX_ROUTERS; i++) {
-    next_nodes[i] = predecessors[i];
+  //Preenche o seu vetor na tabela de roteamento
+  for (i = 0; i < (*qtt_neighbors); i++) {
+    u = node_id; v = neighbors[i].id; w = neighbors[i].w;
+    router_table[u][v] = w;
+    next_nodes[v] = v;
   }
 }
+
 
 int main(int argc, char* argv[]) {
   int node_id = *argv[1] - '0'; // ID do nó deste processo
   int routers_ports[MAX_ROUTERS]; // Lista das portas dos roteadores
   char routers_addresses[MAX_ROUTERS][MAX_ROUTER_ADDRESS_SIZE]; // Lista dos endereços dos roteadores
-  int routers_links[MAX_ROUTERS][MAX_ROUTERS]; // Matriz de adjacência do grafo dos roteadores
-  int pid;
+  int router_table[MAX_ROUTERS][MAX_ROUTERS];
+  neighbor_t neighbors[MAX_ROUTERS];
+  int qtt_neighbors; // Quantidade de vizinhos que o nó tem
+  int pid, new_pid, new_pid2;
   int next_nodes[MAX_ROUTERS];
   int package_id = 0;
 
@@ -384,29 +368,24 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  if (read_links(routers_links)) {
-    printf("\033\[31mErro ao abrir o arquivo de enlaces.\033[0m\n");
+  initialize(node_id, router_table, neighbors, next_nodes, &qtt_neighbors);
+  /*
+  new_pid = fork();
+  if (new_pid) {
+    new_pid2 = fork();
+    if (new_pid2) client_table();
+    else server_table();
     return 0;
   }
+  */
 
-  build_next_nodes_list(next_nodes, routers_links, node_id);
-
-  if (DEBUG_MODE) { // Printa algumas coisas no console pra debugar mais fácil
-    printf("\nID do nó: \033[1;31m%d\033[0m\n", node_id);
-    print_routers_ports(routers_ports);
-    print_routers_addresses(routers_addresses);
-    print_routers_links(routers_links);
-    for (int i = 0; i < MAX_ROUTERS; i++) {
-      printf("Para ir pra %d, precisa começar em %d\n", i, next_nodes[i]);
-    }
-  }
-
+  /*
   pid = fork();
   if (pid) {
     start_client(node_id, routers_addresses, routers_ports, next_nodes, &package_id);
   } else {
     start_server(node_id, routers_addresses, routers_ports, next_nodes);
   }
-
+  */
   return 0;
 };
