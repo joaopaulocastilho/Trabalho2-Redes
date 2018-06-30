@@ -34,6 +34,14 @@ struct argumentos_transmissor_struct {
   int ultimo_pacote_buffer_saida;
 };
 
+struct argumentos_receptor_struct {
+  pthread_mutex_t *buffer_entrada_mutex;
+  pacote_t *buffer_entrada;
+  int tamanho_buffer_entrada;
+  int ultimo_pacote_buffer_entrada;
+};
+
+
 void *transmissor(void *args) {
   struct argumentos_transmissor_struct* argumentos = (struct argumentos_transmissor_struct*) args;
   while(1) {
@@ -42,6 +50,17 @@ void *transmissor(void *args) {
 
     // pthread_mutex_unlock(argumentos->buffer_saida_mutex);
   return NULL;
+  }
+}
+
+void* receptor(void *args) {
+  struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
+  while (1) {
+    printf("Sou o receptor!\n");
+    // pthread_mutex_lock(argumentos->buffer_entrada_mutex);
+
+    // pthread_mutex_unlock(argumentos->buffer_entrada_mutex);
+    return NULL;
   }
 }
 
@@ -60,6 +79,12 @@ int main(int argc, char* argv[]) {
   int ultimo_pacote_buffer_saida = 0;
   memset(buffer_saida, 0, TAMANHO_BUFFER_SAIDA * sizeof(pacote_t));
 
+  // Buffer de entrada
+  pacote_t buffer_entrada[TAMANHO_BUFFER_ENTRADA];
+  pthread_mutex_t buffer_entrada_mutex;
+  pthread_mutex_init(&buffer_entrada_mutex, NULL);
+  int ultimo_pacote_buffer_entrada = 0;
+  memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
   /* Inicia o transmissor **************************************/
   pthread_t transmissor_thread_id;
@@ -71,6 +96,15 @@ int main(int argc, char* argv[]) {
   pthread_create(&transmissor_thread_id, NULL, transmissor, (void*)&argumentos_transmissor);
   /*************************************************************/
 
+  /* Inicia o receptor *****************************************/
+  pthread_t receptor_thread_id;
+  struct argumentos_receptor_struct argumentos_receptor;
+  argumentos_receptor.buffer_entrada_mutex = &buffer_entrada_mutex;
+  argumentos_receptor.buffer_entrada = buffer_entrada;
+  argumentos_receptor.tamanho_buffer_entrada = TAMANHO_BUFFER_ENTRADA;
+  argumentos_receptor.ultimo_pacote_buffer_entrada = ultimo_pacote_buffer_entrada;
+  pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
+  /*************************************************************/
 
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
