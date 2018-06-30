@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
 
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
+  pthread_join(receptor_thread_id, NULL);
   /*************************************************************/
   return 0;
 };
