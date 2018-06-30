@@ -1,5 +1,6 @@
 #include <stdio.h> // printf
-#include <pthread.h>
+#include <pthread.h> // Para usar as threads
+#include <unistd.h> // Para usar mutex
 
 // Pacote:
 // |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
@@ -41,7 +42,7 @@ void transmissor(void *argumentos) {
   }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
   int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
   // Buffer de saída
