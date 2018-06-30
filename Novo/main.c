@@ -12,7 +12,7 @@
 #define MAX_ROUTERS 20 // Número máximo de roteadores presentes no arquivo roteador.config
 #define MAX_ROUTER_ADDRESS_SIZE 20 // Tamanho máximo do endereço de ip dos roteadores
 #define MESSAGE_SIZE 500 // Tamanho do buffer pra guardar a mensagem
-#define PACKAGE_SIZE (MESSAGE_SIZE + 9) // 2 bytes pra guardar o destino do pacote, 2 para o remetente e 4 pra informações extras
+#define PACKAGE_SIZE (MESSAGE_SIZE + 8) // 2 bytes pra guardar o destino do pacote, 2 para o remetente e 4 pra informações extras
 #define INF 112345678
 
 typedef struct { int id, w; }neighbor_t;
@@ -29,8 +29,8 @@ int next_nodes[MAX_ROUTERS]; //Vetor de saltos
 int package_id = 0;
 
 
-void wrap_message(char package_space[], char message[], int destination_node_id, int this_node_id, int confirmation, int package_id, int validation);
-void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *package_id, int *is_validation);
+void wrap_message(char package_space[], char message[], int destination_node_id, int this_node_id, int confirmation, int package_id);
+void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *package_id);
 
 void die(char *s) {
   perror(s);
@@ -76,9 +76,7 @@ void send_package(char *package, int next_node) {
     exit(1);
   }
   //send the message
-  if (sendto(s, package, 8 + strlen(package + 8), 0, (struct sockaddr *) &si_other, slen) == -1) {
-      die("sendto()");
-  }
+  if (sendto(s, package, 8 + strlen(package + 8), 0, (struct sockaddr *) &si_other, slen) == -1) die("sendto()");
 
   close(s);
 }
@@ -95,10 +93,8 @@ void* sender(void *arg) {
     message[strlen(message) - 1] = '\0';
 
     //O penúltimo parâmetro da função é se é uma mensagem de confirmação. Nesse caso é 0 pois não é.
-    wrap_message(package, message, message_target_node, node_id, 0, package_id, 0);
+    wrap_message(package, message, message_target_node, node_id, 0, package_id);
     package_id = (package_id + 1) % 8; //Estamos dando 3 bits para id's de pacotes. Caso seja mandado mais, o id será resetado.
-
-    printf("%d != %d\n", message_target_node, next_nodes[message_target_node]);
 
     printf("\n\033[1;32m⬆\033[0m ");
     printf("[\033[1;31m%d\033[0m], ", node_id);
@@ -126,7 +122,7 @@ void* receiver(void *arg) {
   si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
   //bind socket to port
-  if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1) die("bind");
+  if (bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1) die("bind");
 
   //keep listening for data
   while(1) {
@@ -142,7 +138,7 @@ void* receiver(void *arg) {
     if (recv_len == -1) { die("recvfrom()"); }
 
     unwrap_message(&package_bitmask, &destination_node_id, &sender_node_id,
-                   message, buffer, &is_confirmation, &id_package, &is_validation);
+                   message, buffer, &is_confirmation, &id_package);
 
     if (destination_node_id == node_id) {
       if (!is_confirmation) {
@@ -154,10 +150,10 @@ void* receiver(void *arg) {
                                                                 node_id
                );
         printf("\n");
-        printf("Teste: \033[1m%s\033[0m\n", message);
+        printf("\033[1m%s\033[0m\n", message);
         message[0] = '\0';
         //Enviar mensagem de confirmação que recebeu.
-        wrap_message(package, message, message_target_node, node_id, 1, id_package, is_validation);
+        wrap_message(package, message, message_target_node, node_id, 1, id_package);
         printf("\n\033[1mEnviando Corfirmacao: \033[0m");
         printf("\n\033[1;32m⬆\033[0m ");
         printf("[\033[1;31m%d\033[0m], ", node_id);
@@ -197,8 +193,7 @@ void wrap_message(char *package_space,
                   int destination_node_id,
                   int this_node_id,
                   int confirmation,
-                  int package_id,
-                  int validation) {
+                  int package_id) {
   memset(package_space, 0, 4);
   if (confirmation) package_space[0] = (1 << 7);
   package_space[0] |= (unsigned char)(package_id << 4);
@@ -206,8 +201,7 @@ void wrap_message(char *package_space,
   package_space[5] = (unsigned char)destination_node_id;
   package_space[6] = (unsigned char)(this_node_id >> 8);
   package_space[7] = (unsigned char)this_node_id;
-  if (validation) package_space[8] = (1 << 7);
-  strncpy(package_space + 9, message, MESSAGE_SIZE);
+  strncpy(package_space + 8, message, MESSAGE_SIZE);
   if (DEBUG) {
     printf("\n\n[DEBUG]Wrapping the message:\n");
     printf("[DEBUG]Message: %s\n", message);
@@ -225,8 +219,7 @@ void unwrap_message(int *bitmask,
                     char *message,
                     char *buffer,
                     int *is_confirmation,
-                    int *id_package,
-                    int *is_validation) {
+                    int *id_package) {
   int bit = 0;
   *is_confirmation = (buffer[0] & (1 << 7));
   for (int i = 0; i < 3; i++) {
@@ -242,8 +235,7 @@ void unwrap_message(int *bitmask,
   *destination |= buffer[5];
   *sender = buffer[6] << 8;
   *sender |= buffer[7];
-  *is_validation = (buffer[8] & (1 << 7));
-  strncpy(message, &buffer[9], MESSAGE_SIZE);
+  strncpy(message, buffer + 8, MESSAGE_SIZE);
   if (DEBUG) {
     printf("[DEBUG]Unwrapping the message:\n");
     printf("[DEBUG]Buffer: ");
