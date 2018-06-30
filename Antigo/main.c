@@ -4,20 +4,21 @@
 #include <sys/types.h> // fork()
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #define DEBUG_MODE 0
 #define MAX_ROUTERS 20 // Número máximo de roteadores presentes no arquivo roteador.config
 #define MAX_ROUTER_ADDRESS_SIZE 20 // Tamanho máximo do endereço de ip dos roteadores
 
 #define MESSAGE_SIZE 500 // Tamanho do buffer pra guardar a mensagem
-#define PACKAGE_SIZE (MESSAGE_SIZE + 8) // 2 bytes pra guardar o destino do pacote, 2 para o remetente e 4 pra informações extras
+#define PACKAGE_SIZE (MESSAGE_SIZE + 9) // 2 bytes pra guardar o destino do pacote, 2 para o remetente e 4 pra informações extras
 
 #define INF 112345678
 
 typedef struct { int id, w; }neighbor_t;
 
-void wrap_message(char package_space[], char message[], int destination_node_id, int this_node_id, int confirmation, int package_id);
-void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *id_package);
+void wrap_message(char package_space[], char message[], int destination_node_id, int this_node_id, int confirmation, int package_id, int validation);
+void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *id_package, int *is_validation);
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais routers_ports e routers_addresses passados por parâmetro. */
 int read_routers(int routers_ports[MAX_ROUTERS], char routers_addresses[MAX_ROUTERS][MAX_ROUTER_ADDRESS_SIZE]) {
@@ -38,28 +39,6 @@ int read_routers(int routers_ports[MAX_ROUTERS], char routers_addresses[MAX_ROUT
     strcpy(routers_addresses[router_id], router_address);
   }
   fclose(routers_file);
-  return 0;
-}
-
-/** Função que le o arquivo enlaces.config e cria uma matriz de adjacência no vetor bidimensional routers_links passado por parâmetro. */
-int read_links(int routers_links[MAX_ROUTERS][MAX_ROUTERS]) {
-  FILE *links_file;
-  int router1, router2, cost;
-
-
-  links_file = fopen("enlaces.config", "r");
-  if (!links_file) {
-    return 1;
-  }
-
-  memset(routers_links, -1, MAX_ROUTERS * MAX_ROUTERS * sizeof(int));
-  for (int i = 0; i < MAX_ROUTERS; i++) routers_links[i][i] = 0;
-  while(fscanf(links_file, "%d %d %d\n", &router1, &router2, &cost) != EOF) {
-    routers_links[router1][router2] = cost;
-    routers_links[router2][router1] = cost;
-  }
-
-  fclose(links_file);
   return 0;
 }
 
@@ -162,7 +141,7 @@ void start_client(int node_id,
     message[strlen(message) - 1] = '\0';
 
     //O penúltimo parâmetro da função é se é uma mensagem de confirmação. Nesse caso é 0 pois não é.
-    wrap_message(package, message, message_target_node, node_id, 0, *package_id);
+    wrap_message(package, message, message_target_node, node_id, 0, *package_id, 0);
     *package_id = (*package_id + 1) % 8; //Estamos dando 3 bits para id's de pacotes. Caso seja mandado mais, o id será resetado.
 
     printf("\n\033[1;32m⬆\033[0m ");
@@ -180,7 +159,8 @@ void start_client(int node_id,
 void start_server(int node_id,
                   char routers_addresses[MAX_ROUTERS][MAX_ROUTER_ADDRESS_SIZE],
                   int routers_ports[MAX_ROUTERS],
-                  int next_nodes[MAX_ROUTERS]) {
+                  int next_nodes[MAX_ROUTERS],
+                  int newst[]) {
   struct sockaddr_in si_me, si_other;
   int s, slen = sizeof(si_other) , recv_len;
   char buffer[PACKAGE_SIZE];
@@ -208,7 +188,7 @@ void start_server(int node_id,
     int package_bitmask;
     short int destination_node_id, sender_node_id;
     char message[MESSAGE_SIZE];
-    int is_confirmation, id_package;
+    int is_confirmation, id_package, is_validation;
 
     memset(buffer, 0, PACKAGE_SIZE);
 
@@ -216,8 +196,10 @@ void start_server(int node_id,
     recv_len = recvfrom(s, buffer, PACKAGE_SIZE, 0, (struct sockaddr *) &si_other, &slen);
     if (recv_len == -1) { die("recvfrom()"); }
 
-    unwrap_message(&package_bitmask, &destination_node_id, &sender_node_id, message, buffer, &is_confirmation, &id_package);
+    unwrap_message(&package_bitmask, &destination_node_id, &sender_node_id,
+                   message, buffer, &is_confirmation, &id_package, &is_validation);
 
+    //printf("Oi: %d %d\n", is_validation, is_confirmation);
     if (destination_node_id == node_id) {
       if (!is_confirmation) {
         char package[PACKAGE_SIZE];
@@ -231,7 +213,7 @@ void start_server(int node_id,
         printf("\033[1m%s\033[0m\n", message);
         message[0] = '\0';
         //Enviar mensagem de confirmação que recebeu.
-        wrap_message(package, message, message_target_node, node_id, 1, id_package);
+        wrap_message(package, message, message_target_node, node_id, 1, id_package, is_validation);
         printf("\n\033[1mEnviando Corfirmacao: \033[0m");
         printf("\n\033[1;32m⬆\033[0m ");
         printf("[\033[1;31m%d\033[0m], ", node_id);
@@ -241,6 +223,10 @@ void start_server(int node_id,
         printf("\033[1;31m%d\033[0m\n", message_target_node);
         send_package(package, message_target_node, routers_addresses, routers_ports, next_nodes);
       } else {
+        if (is_validation) {
+          printf("N: %d\n", node_id);
+          newst[(int)message[0]] = 1;
+        }
         printf("Pacote %d entregue com sucesso!\n", id_package);
       }
     } else {
@@ -267,7 +253,13 @@ void start_server(int node_id,
   close(s);
 }
 
-void wrap_message(char *package_space, char *message, int destination_node_id, int this_node_id, int confirmation, int package_id) {
+void wrap_message(char *package_space,
+                  char *message,
+                  int destination_node_id,
+                  int this_node_id,
+                  int confirmation,
+                  int package_id,
+                  int validation) {
   memset(package_space, 0, 4);
   if (confirmation) package_space[0] = (1 << 7);
   package_space[0] |= (unsigned char)(package_id << 4);
@@ -275,7 +267,8 @@ void wrap_message(char *package_space, char *message, int destination_node_id, i
   package_space[5] = (unsigned char)destination_node_id;
   package_space[6] = (unsigned char)(this_node_id >> 8);
   package_space[7] = (unsigned char)this_node_id;
-  strncpy(package_space + 8, message, MESSAGE_SIZE);
+  if (validation) package_space[8] = (1 << 7);
+  strncpy(package_space + 9, message, MESSAGE_SIZE);
   if (DEBUG_MODE) {
     printf("\n\n[DEBUG]Wrapping the message:\n");
     printf("[DEBUG]Message: %s\n", message);
@@ -287,7 +280,14 @@ void wrap_message(char *package_space, char *message, int destination_node_id, i
   }
 }
 
-void unwrap_message(int *bitmask, short int *destination, short int *sender, char *message, char *buffer, int *is_confirmation, int *id_package) {
+void unwrap_message(int *bitmask,
+                    short int *destination,
+                    short int *sender,
+                    char *message,
+                    char *buffer,
+                    int *is_confirmation,
+                    int *id_package,
+                    int *is_validation) {
   int bit = 0;
   *is_confirmation = (buffer[0] & (1 << 7));
   for (int i = 0; i < 3; i++) {
@@ -303,7 +303,8 @@ void unwrap_message(int *bitmask, short int *destination, short int *sender, cha
   *destination |= buffer[5];
   *sender = buffer[6] << 8;
   *sender |= buffer[7];
-  strncpy(message, &buffer[8], MESSAGE_SIZE);
+  *is_validation = (buffer[8] & (1 << 7));
+  strncpy(message, &buffer[9], MESSAGE_SIZE);
   if (DEBUG_MODE) {
     printf("[DEBUG]Unwrapping the message:\n");
     printf("[DEBUG]Buffer: ");
@@ -315,7 +316,12 @@ void unwrap_message(int *bitmask, short int *destination, short int *sender, cha
   }
 }
 
-void initialize(int node_id, int router_table[MAX_ROUTERS][MAX_ROUTERS], neighbor_t neighbors[MAX_ROUTERS], int next_nodes[MAX_ROUTERS], int *qtt_neighbors) {
+void initialize(int node_id,
+                int router_table[MAX_ROUTERS][MAX_ROUTERS],
+                neighbor_t neighbors[MAX_ROUTERS],
+                int next_nodes[MAX_ROUTERS],
+                int *qtt_neighbors,
+                int sit_neighbors[MAX_ROUTERS]) {
   int i, j, u, v, w;
   *qtt_neighbors = 0;
   //Inicia a tabela de roteamento
@@ -345,9 +351,36 @@ void initialize(int node_id, int router_table[MAX_ROUTERS][MAX_ROUTERS], neighbo
     u = node_id; v = neighbors[i].id; w = neighbors[i].w;
     router_table[u][v] = w;
     next_nodes[v] = v;
+    sit_neighbors[i] = 1;
   }
 }
 
+
+void validation(int node_id,
+                char routers_addresses[MAX_ROUTERS][MAX_ROUTER_ADDRESS_SIZE],
+                int routers_ports[MAX_ROUTERS],
+                int next_nodes[MAX_ROUTERS],
+                int *qtt_neighbors,
+                neighbor_t neighbors[],
+                int sit_neighbors[],
+                int newst[]) {
+  int i;
+  char message[MESSAGE_SIZE];
+  short int message_target_node;
+  char package[PACKAGE_SIZE];
+  memset(newst, 0, sizeof(newst));
+
+  for (i = 0; i < *qtt_neighbors; i++) {
+    message[0] = i;
+    wrap_message(package, message, (short int)neighbors[i].id, node_id, 0, 0, 1);
+    send_package(package, (short int)neighbors[i].id, routers_addresses, routers_ports, next_nodes);
+  }
+  sleep(3);
+  for (i = 0; i < *qtt_neighbors; i++) printf("%d ", newst[i]);
+  printf("\n");
+  printf("Validation %d\n", node_id);
+
+}
 
 int main(int argc, char* argv[]) {
   int node_id = *argv[1] - '0'; // ID do nó deste processo
@@ -356,6 +389,8 @@ int main(int argc, char* argv[]) {
   int router_table[MAX_ROUTERS][MAX_ROUTERS];
   neighbor_t neighbors[MAX_ROUTERS];
   int qtt_neighbors; // Quantidade de vizinhos que o nó tem
+  int sit_neighbors[MAX_ROUTERS]; // Os meus vizinhos estão disponíveis?
+  int newst[MAX_ROUTERS];
   int pid, new_pid, new_pid2;
   int next_nodes[MAX_ROUTERS];
   int package_id = 0;
@@ -368,24 +403,22 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  initialize(node_id, router_table, neighbors, next_nodes, &qtt_neighbors);
-  /*
-  new_pid = fork();
-  if (new_pid) {
-    new_pid2 = fork();
-    if (new_pid2) client_table();
-    else server_table();
-    return 0;
-  }
-  */
+  initialize(node_id, router_table, neighbors, next_nodes, &qtt_neighbors, sit_neighbors);
 
-  /*
-  pid = fork();
-  if (pid) {
-    start_client(node_id, routers_addresses, routers_ports, next_nodes, &package_id);
+  int pid2 = fork();
+  if (pid2) {
+    pid = fork();
+    if (pid) {
+      start_client(node_id, routers_addresses, routers_ports, next_nodes, &package_id);
+    } else {
+      start_server(node_id, routers_addresses, routers_ports, next_nodes, newst);
+    }
   } else {
-    start_server(node_id, routers_addresses, routers_ports, next_nodes);
+    new_pid = fork();
+    if (new_pid) {
+      validation(node_id, routers_addresses, routers_ports, next_nodes, &qtt_neighbors, neighbors, sit_neighbors, newst); }
+
   }
-  */
+
   return 0;
 };
