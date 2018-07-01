@@ -2,6 +2,57 @@
 #include "transmissor.c"
 #include "receptor.c"
 
+/** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
+int le_roteadores(int portas_roteadores[MAXIMO_ROTEADORES], char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO]) {
+  FILE *arquivo_roteadores;
+  int id_roteador, router_port;
+  char endereco_tmp[TAMANHO_MAXIMO_ENDERECO];
+
+  memset(portas_roteadores, -1, MAXIMO_ROTEADORES * sizeof(int));
+  memset(enderecos_roteadores, 0, MAXIMO_ROTEADORES * TAMANHO_MAXIMO_ENDERECO);
+
+  arquivo_roteadores = fopen("roteador.config", "r");
+  if (!arquivo_roteadores) {
+    return 1;
+  }
+
+  while(fscanf(arquivo_roteadores, "%d %d %s\n", &id_roteador, &router_port, endereco_tmp) != EOF) {
+    portas_roteadores[id_roteador] = router_port;
+    strcpy(enderecos_roteadores[id_roteador], endereco_tmp);
+  }
+  fclose(arquivo_roteadores);
+  return 0;
+}
+
+void inicializa_tabela_roteamento(int id_nodo_atual, int *quantidade_vizinhos, vizinho_t vizinhos[], int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS], int vetor_saltos[]) {
+  int i, j, u, v, w;
+  //Inicia a tabela de roteamento
+  for (i = 0; i < QUANTIDADE_MAXIMA_NOS; i++)
+    for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) tabela_roteamento[i][j] = INFINITO;
+
+  FILE *arquivo_enlaces = fopen("enlaces.config", "r");
+  if (!arquivo_enlaces) die("Falha ao abrir o arquivo de enlaces");
+  while(fscanf(arquivo_enlaces, "%d %d %d\n", &u, &v, &w) != EOF){
+    if (v == id_nodo_atual) { v = u; u = id_nodo_atual; }
+    if (u == id_nodo_atual) {
+      vizinhos[*quantidade_vizinhos].id = v;
+      vizinhos[(*quantidade_vizinhos)++].peso = w;
+    }
+  }
+  fclose(arquivo_enlaces);
+
+  //Seta os custos de um nó para ele mesmo, e o salto dele para ele mesmo
+  tabela_roteamento[id_nodo_atual][id_nodo_atual] = 0;
+  vetor_saltos[id_nodo_atual] = id_nodo_atual;
+
+  //Preenche o seu vetor na tabela de roteamento
+  for (i = 0; i < *quantidade_vizinhos; i++) {
+    u = id_nodo_atual; v = vizinhos[i].id; w = vizinhos[i].peso;
+    tabela_roteamento[u][v] = w;
+    vetor_saltos[v] = v;
+  }
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     printf("ERRO! Passe o ID do nodo como argumento para execução.\n");
@@ -10,10 +61,20 @@ int main(int argc, char* argv[]) {
 
   int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
+  // Vetor de saltos
+  int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
+  memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
+
   // Inicia o vetor de endereços
   int portas_roteadores[MAXIMO_ROTEADORES];
   char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO];
   le_roteadores(portas_roteadores, enderecos_roteadores);
+
+  // Inicia tabela de roteamento e vetor de vizinhos
+  int quantidade_vizinhos = 0;
+  vizinho_t vizinhos[QUANTIDADE_MAXIMA_NOS];
+  int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS];
+  inicializa_tabela_roteamento(nodo_processo_id, &quantidade_vizinhos, vizinhos, tabela_roteamento, vetor_saltos);
 
   // Log
   pthread_mutex_init(&log_mutex, NULL);
@@ -31,10 +92,6 @@ int main(int argc, char* argv[]) {
   pthread_mutex_init(&buffer_entrada_mutex, NULL);
   int ultimo_pacote_buffer_entrada = 0;
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
-
-  // Vetor de saltos
-  int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
-  memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
   /* Inicia o transmissor **************************************/
   pthread_t transmissor_thread_id;

@@ -38,6 +38,10 @@ typedef struct {
   char mensagem[TAMANHO_MENSAGEM_PACOTE];
 } pacote_t;
 
+typedef struct {
+  int id, peso;
+} vizinho_t;
+
 pthread_mutex_t log_mutex;
 
 int grava_log(char *mensagem) {
@@ -56,28 +60,6 @@ void die(char *s) {
   perror(s);
   exit(1);
 };
-
-/** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
-int le_roteadores(int portas_roteadores[MAXIMO_ROTEADORES], char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO]) {
-  FILE *arquivo_roteadores;
-  int id_roteador, router_port;
-  char endereco_tmp[TAMANHO_MAXIMO_ENDERECO];
-
-  memset(portas_roteadores, -1, MAXIMO_ROTEADORES * sizeof(int));
-  memset(enderecos_roteadores, 0, MAXIMO_ROTEADORES * TAMANHO_MAXIMO_ENDERECO);
-
-  arquivo_roteadores = fopen("roteador.config", "r");
-  if (!arquivo_roteadores) {
-    return 1;
-  }
-
-  while(fscanf(arquivo_roteadores, "%d %d %s\n", &id_roteador, &router_port, endereco_tmp) != EOF) {
-    portas_roteadores[id_roteador] = router_port;
-    strcpy(enderecos_roteadores[id_roteador], endereco_tmp);
-  }
-  fclose(arquivo_roteadores);
-  return 0;
-}
 
 /* Converte pacote para tripa de char. Resultado deve ter tamanho de
  * TAMANHO_TOTAL_PACOTE ou mais, mas só isso será escrito.
