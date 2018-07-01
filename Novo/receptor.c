@@ -57,6 +57,7 @@
         pacote_recebido.destino,
         pacote_recebido.mensagem
       );
+       grava_log(mensagem_log);
      } else {
       sprintf( // Não conseguiu salvar o pacote
         mensagem_log,
