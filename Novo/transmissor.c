@@ -2,6 +2,11 @@
 #define INCLUSAO_ARQUIVO_TRANSMISSOR
 #include "globais.h"
 
+void envia_pacote(char *cadeia_caracteres,
+                  int tamanho_cadeia_caracteres,
+                  char *endereco,
+                  int porta);
+
 /** Transmissor
  * Pega os pacotes que estão no buffer de saída e envia-os para o nó de desti-
  * no. Envia de acordo com o vetor de saltos
@@ -12,14 +17,17 @@ struct argumentos_transmissor_struct {
   pacote_t *buffer_saida;
   int tamanho_buffer_saida;
   int *vetor_saltos;
+  char (*enderecos_vizinhos)[TAMANHO_MAXIMO_ENDERECO];
+  int *portas_vizinhos;
 };
 
 void *transmissor(void *args) {
   struct argumentos_transmissor_struct* argumentos = (struct argumentos_transmissor_struct*) args;
   int indice_primeiro_pacote = 0;
-  pacote_t pacote_envio;
-  int proximo_salto_pacote;
-  char mensagem_log[500];
+  pacote_t pacote_envio; // Pacote a ser enviado.
+  int proximo_salto_envio; // Id do nó do próximo salto.
+  char mensagem_log[5000]; // Variável auxiliar para printar coisas no log. Ignore.
+  char cadeia_caracteres_pacote[TAMANHO_TOTAL_PACOTE]; // Espaço para colocar a cadeia de caracteres do pacote.
 
   do {
     /* Pega o pacote no buffer de saída */
@@ -35,17 +43,59 @@ void *transmissor(void *args) {
     pthread_mutex_unlock(argumentos->buffer_saida_mutex);
 
     /* Busca o próximo salto para o nó de destino do pacote */
-    proximo_salto_pacote = argumentos->vetor_saltos[pacote_envio.destino];
-    if (proximo_salto_pacote == -1) {
+    proximo_salto_envio = argumentos->vetor_saltos[pacote_envio.destino];
+    if (proximo_salto_envio == -1) {
       sprintf(mensagem_log, "[TRANSMISSOR] Tentativa de envio para [%d] com pacote do tipo [%d] falhou. O próximo salto ainda não foi descoberto.", pacote_envio.destino, pacote_envio.tipo);
       grava_log(mensagem_log);
       continue;
     }
 
-    // ... Terminar ...
+    /* Envia pacote */
+    converte_pacote_para_char(pacote_envio, cadeia_caracteres_pacote);
+    envia_pacote(cadeia_caracteres_pacote,
+                 9 + strlen(cadeia_caracteres_pacote + 9),
+                 argumentos->enderecos_vizinhos[proximo_salto_envio],
+                 argumentos->portas_vizinhos[proximo_salto_envio]);
 
-
+    /* Salva no log que o pacote foi enviado */
+    sprintf(
+      mensagem_log,
+      "[TRANSMISSOR] Pacote do tipo [%d] enviado para [%d] com destino a [%d] e com a mensagem [%s].",
+      pacote_envio.tipo,
+      proximo_salto_envio,
+      pacote_envio.destino,
+      pacote_envio.mensagem
+    );
+    grava_log(mensagem_log);
   } while(0); // TODO: Mudar para 1 depois que estiver pronto
+}
+
+void envia_pacote(char *cadeia_caracteres,
+                  int tamanho_cadeia_caracteres,
+                  char *endereco,
+                  int porta) {
+  struct sockaddr_in si_other;
+  int s, slen = sizeof(si_other);
+
+  if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+    die("socket");
+  }
+
+  memset((char *) &si_other, 0, sizeof(si_other));
+  si_other.sin_family = AF_INET;
+
+  si_other.sin_port = htons(porta);
+  if (inet_aton(endereco , &si_other.sin_addr) == 0) {
+    fprintf(stderr, "inet_aton() failed\n");
+    exit(1);
+  }
+
+  //send the message
+  if (sendto(s, cadeia_caracteres, tamanho_cadeia_caracteres, 0, (struct sockaddr *) &si_other, slen) == -1) {
+      die("sendto()");
+  }
+
+  close(s);
 }
 
 #endif

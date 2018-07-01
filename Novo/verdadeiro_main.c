@@ -100,6 +100,8 @@ int main(int argc, char* argv[]) {
   argumentos_transmissor.buffer_saida = buffer_saida;
   argumentos_transmissor.tamanho_buffer_saida = TAMANHO_BUFFER_SAIDA;
   argumentos_transmissor.vetor_saltos = vetor_saltos;
+  argumentos_transmissor.enderecos_vizinhos = enderecos_roteadores;
+  argumentos_transmissor.portas_vizinhos = portas_roteadores;
   pthread_create(&transmissor_thread_id, NULL, transmissor, (void*)&argumentos_transmissor);
   /*************************************************************/
 
