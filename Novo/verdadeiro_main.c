@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
   }
   printf("Iniciando processo...\n");
 
-  int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
+  int id_nodo_atual = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
   printf("Inicializando vetor de saltos...\n");
   // Vetor de saltos
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
   int quantidade_vizinhos = 0;
   vizinho_t vizinhos[QUANTIDADE_MAXIMA_NOS];
   int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS];
-  inicializa_tabela_roteamento(nodo_processo_id, &quantidade_vizinhos, vizinhos, tabela_roteamento, vetor_saltos);
+  inicializa_tabela_roteamento(id_nodo_atual, &quantidade_vizinhos, vizinhos, tabela_roteamento, vetor_saltos);
 
   // Log
   pthread_mutex_init(&log_mutex, NULL);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
   argumentos_receptor.buffer_entrada = buffer_entrada;
   argumentos_receptor.tamanho_buffer_entrada = TAMANHO_BUFFER_ENTRADA;
   argumentos_receptor.portas_roteadores = portas_roteadores;
-  argumentos_receptor.id_nodo_atual = nodo_processo_id;
+  argumentos_receptor.id_nodo_atual = id_nodo_atual;
 
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
