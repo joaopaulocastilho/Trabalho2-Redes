@@ -17,7 +17,7 @@
 
  void* receptor(void *args) {
    struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
-   int ultimo_pacote_entrada;
+   int ultimo_pacote_entrada = 0;
    int nodo_atual = argumentos->id_nodo_atual;
    char mensagem_log[5000];
 
