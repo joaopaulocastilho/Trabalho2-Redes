@@ -28,7 +28,7 @@
 #define QUANTIDADE_MAXIMA_NOS 50
 #define TAMANHO_MAXIMO_ENDERECO 20
 
-#define INFINITO 1123456789
+#define INFINITO 112345678
 
 // Pacote: |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 typedef struct {
