@@ -19,6 +19,7 @@
    struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
    int ultimo_pacote_entrada;
    int nodo_atual = argumentos->id_nodo_atual;
+   char mensagem_log[5000];
 
    char buffer[TAMANHO_TOTAL_PACOTE]; // Buffer onde o pacote recebido vai entrar
    pacote_t pacote_recebido, prox_posicao;
@@ -48,6 +49,24 @@
      if (prox_posicao.tipo == TIPO_PACOTE_VAZIO) {
        argumentos->buffer_entrada[ultimo_pacote_entrada] = pacote_recebido;
        ultimo_pacote_entrada = (ultimo_pacote_entrada + 1) % TAMANHO_BUFFER_ENTRADA;
+       sprintf( // Conseguiu salvar o pacote no buffer de entrada
+        mensagem_log,
+        "[RECEPTOR] Pacote do tipo [%d] recebido com origem [%d], destino [%d] e com a mensagem [%s] adicionado ao buffer de entrada.",
+        pacote_recebido.tipo,
+        pacote_recebido.origem,
+        pacote_recebido.destino,
+        pacote_recebido.mensagem
+      );
+     } else {
+      sprintf( // Não conseguiu salvar o pacote
+        mensagem_log,
+        "[RECEPTOR] Pacote do tipo [%d] recebido com origem [%d], destino [%d] e com a mensagem [%s] descartado por falta de espaço no buffer de entrada.",
+        pacote_recebido.tipo,
+        pacote_recebido.origem,
+        pacote_recebido.destino,
+        pacote_recebido.mensagem
+      );
+      grava_log(mensagem_log);
      }
      pthread_mutex_unlock(argumentos->buffer_entrada_mutex);
    }
