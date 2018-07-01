@@ -24,6 +24,7 @@
 
    pacote_t pacote_vetor_distancia;
    while (1) {
+     // Vamos crirar um pacote para cada vizinho
      for (i = 0; i < quantidade_vizinhos; i++) {
        pacote_vetor_distancia.destino = argumentos->vizinhos[i].id;
        pacote_vetor_distancia.tipo = TIPO_PACOTE_VETOR_DISTANCIA;
@@ -31,6 +32,7 @@
        for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) {
          pacote_vetor_distancia.mensagem[j] = argumentos->tabela_roteamento[nodo_atual][j];
        }
+       // Conseguiu encaminhar o pacote?
        inseriu_buffer_saida = enfileira_pacote_para_envio(pacote_vetor_distancia, argumentos->buffer_saida, argumentos->buffer_saida_mutex, argumentos->ultimo_pacote_buffer_saida);
        if (inseriu_buffer_saida) {
          sprintf( // Conseguiu Conseguiu guardar a mensagem no buffer de saída para o próximo salto até o destino.
@@ -51,6 +53,7 @@
         );
       }
     }
+    // Vamos esperar um tempo até mandar novamente!
     sleep(TEMPO_PAUSA_EVD);
   }
 }
