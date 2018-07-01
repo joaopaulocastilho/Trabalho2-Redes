@@ -95,6 +95,16 @@ int main(int argc, char* argv[]) {
     buffer_saida[i].tipo = TIPO_PACOTE_VAZIO;
   }
 
+  // Buffer de impressão
+  printf("Inicializando buffer de impressão...\n");
+  pacote_t buffer_impressao[TAMANHO_BUFFER_IMPRESSAO];
+  pthread_mutex_t buffer_impressao_mutex;
+  pthread_mutex_init(&buffer_impressao_mutex, NULL);
+  int ultimo_pacote_buffer_impressao = -1;
+  for (int i = 0; i < TAMANHO_BUFFER_IMPRESSAO; i++) {
+    buffer_impressao[i].tipo = TIPO_PACOTE_VAZIO;
+  }
+
   // Buffer de entrada
   printf("Inicializando buffer de entrada...\n");
   pacote_t buffer_entrada[TAMANHO_BUFFER_ENTRADA];
@@ -141,12 +151,30 @@ int main(int argc, char* argv[]) {
                  NULL,
                  interface_envio_mensagem,
                  (void*)&argumentos_interface_envio_mensagem);
-  /*************************************************************/
+  /**************************** Interface de Envio de Mensagem */
+
+  /* Redirecionador ********************************************/
+  pthread_t redirecionador_thread_id;
+  // Parâmetros do buffer de entrada
+  struct argumentos_redirecionador_struct argumentos_redirecionador;
+  argumentos_redirecionador.buffer_entrada = buffer_entrada;
+  argumentos_redirecionador.buffer_entrada_mutex = &buffer_entrada_mutex;
+  //Parâmetros do buffer de impressão
+  argumentos_redirecionador.buffer_impressao = buffer_impressao;
+  argumentos_redirecionador.buffer_impressao_mutex = &buffer_impressao_mutex;
+  argumentos_redirecionador.ultimo_pacote_buffer_impressao = &ultimo_pacote_buffer_impressao;
+
+  pthread_create(&redirecionador_thread_id,
+                 NULL,
+                 redirecionador,
+                 (void*)&argumentos_redirecionador);
+  /******************************************** Redirecionador */
 
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
   pthread_join(iem_thread_id, NULL);
+  pthread_join(redirecionador_thread_id, NULL);
   /*************************************************************/
   return 0;
 };
