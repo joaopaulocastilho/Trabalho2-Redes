@@ -10,6 +10,10 @@ int main(int argc, char* argv[]) {
 
   int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
+  // Log
+  pthread_mutex_init(&log_mutex, NULL);
+
+
   // Buffer de saída
   pacote_t buffer_saida[TAMANHO_BUFFER_SAIDA];
   pthread_mutex_t buffer_saida_mutex;
@@ -26,6 +30,7 @@ int main(int argc, char* argv[]) {
 
   // Vetor de saltos
   int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
+  memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
   /* Inicia o transmissor **************************************/
   pthread_t transmissor_thread_id;
