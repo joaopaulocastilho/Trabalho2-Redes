@@ -131,10 +131,12 @@ int main(int argc, char* argv[]) {
   pthread_t receptor_thread_id;
   struct argumentos_receptor_struct argumentos_receptor;
   argumentos_receptor.buffer_entrada_mutex = &buffer_entrada_mutex;
+  argumentos_receptor.buffer_saida_mutex = &buffer_saida_mutex;
   argumentos_receptor.buffer_entrada = buffer_entrada;
+  argumentos_receptor.buffer_saida = buffer_saida;
   argumentos_receptor.portas_roteadores = portas_roteadores;
   argumentos_receptor.id_nodo_atual = id_nodo_atual;
-
+  argumentos_receptor.indice_ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
 
