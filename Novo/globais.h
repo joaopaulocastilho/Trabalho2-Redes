@@ -12,8 +12,6 @@
 
 #define DEBUG_PRINT_LOG 1 // Tudo que vai pro LOG também é imprimido no console
 
-// Pacote:
-// |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 #define TIPO_PACOTE_VAZIO 0
 #define TIPO_PACOTE_MENSAGEM_USUARIO 1
 #define TIPO_PACOTE_CONFIRMACAO_MENSAGEM_USUARIO 2
@@ -32,6 +30,7 @@
 
 #define INFINITO 1123456789
 
+// Pacote: |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 typedef struct {
   int destino;
   char tipo;
@@ -79,5 +78,24 @@ int le_roteadores(int portas_roteadores[MAXIMO_ROTEADORES], char enderecos_rotea
   fclose(arquivo_roteadores);
   return 0;
 }
+
+/* Converte pacote para tripa de char. Resultado deve ter tamanho de
+ * TAMANHO_TOTAL_PACOTE ou mais, mas só isso será escrito.
+ */
+int converte_pacote_para_char(pacote_t pacote, char *resultado) {
+  snprintf(resultado,
+          TAMANHO_TOTAL_PACOTE,
+          "%c%c%c%c%c%c%c%c%c%s",
+          pacote.destino >> 24,
+          pacote.destino >> 16,
+          pacote.destino >> 8,
+          pacote.destino,
+          pacote.tipo,
+          pacote.origem >> 24,
+          pacote.origem >> 16,
+          pacote.origem >> 8,
+          pacote.origem,
+          pacote.mensagem);
+};
 
 #endif

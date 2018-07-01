@@ -3,7 +3,7 @@
 #include "globais.h"
 
 /** Transmissor
- * Pega os pacotese que estão no buffer de saída e envia-os para o nó de desti-
+ * Pega os pacotes que estão no buffer de saída e envia-os para o nó de desti-
  * no. Envia de acordo com o vetor de saltos
  */
 
