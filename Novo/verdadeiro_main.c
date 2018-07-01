@@ -89,8 +89,10 @@ int main(int argc, char* argv[]) {
   pacote_t buffer_saida[TAMANHO_BUFFER_SAIDA];
   pthread_mutex_t buffer_saida_mutex;
   pthread_mutex_init(&buffer_saida_mutex, NULL);
-  int ultimo_pacote_buffer_saida = 0;
-  memset(buffer_saida, 0, TAMANHO_BUFFER_SAIDA * sizeof(pacote_t));
+  int ultimo_pacote_buffer_saida = -1;
+  for (int i = 0; i < TAMANHO_BUFFER_SAIDA; i++) {
+    buffer_saida[i].tipo = TIPO_PACOTE_VAZIO;
+  }
 
   printf("Inicializando buffer de entrada...\n");
   // Buffer de entrada
@@ -101,6 +103,7 @@ int main(int argc, char* argv[]) {
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
   printf("Iniciando threads...\n");
+
   /* Inicia o transmissor **************************************/
   pthread_t transmissor_thread_id;
   struct argumentos_transmissor_struct argumentos_transmissor;
