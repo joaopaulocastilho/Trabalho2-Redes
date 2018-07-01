@@ -81,6 +81,8 @@ int main(int argc, char* argv[]) {
   printf("Inicializando tabela de roteamento e vetor de vizinhos...\n");
   int quantidade_vizinhos = 0;
   vizinho_t vizinhos[QUANTIDADE_MAXIMA_NOS];
+  pthread_mutex_t tabela_roteamento_mutex;
+  pthread_mutex_init(&tabela_roteamento_mutex, NULL);
   int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS];
   inicializa_tabela_roteamento(id_nodo_atual, &quantidade_vizinhos, vizinhos, tabela_roteamento, vetor_saltos);
 
@@ -194,6 +196,7 @@ int main(int argc, char* argv[]) {
   pthread_t envia_vetor_distancias_id;
   struct argumentos_evd_struct argumentos_evd;
   argumentos_evd.tabela_roteamento = tabela_roteamento;
+  argumentos_evd.tabela_roteamento_mutex = &tabela_roteamento_mutex;
   argumentos_evd.buffer_saida = buffer_saida;
   argumentos_evd.buffer_saida_mutex = &buffer_saida_mutex;
   argumentos_evd.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
