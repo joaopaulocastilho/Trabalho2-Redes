@@ -1,23 +1,6 @@
 #include "globais.h"
 #include "transmissor.c"
-
-struct argumentos_receptor_struct {
-  pthread_mutex_t *buffer_entrada_mutex;
-  pacote_t *buffer_entrada;
-  int tamanho_buffer_entrada;
-  int ultimo_pacote_buffer_entrada;
-};
-
-void* receptor(void *args) {
-  struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
-  while (1) {
-    printf("Sou o receptor!\n");
-    // pthread_mutex_lock(argumentos->buffer_entrada_mutex);
-
-    // pthread_mutex_unlock(argumentos->buffer_entrada_mutex);
-    return NULL;
-  }
-}
+#include "receptor.c"
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
