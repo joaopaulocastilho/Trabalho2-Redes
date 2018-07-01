@@ -59,18 +59,22 @@ int main(int argc, char* argv[]) {
     printf("ERRO! Passe o ID do nodo como argumento para execução.\n");
     return 0;
   }
+  printf("Iniciando processo...\n");
 
   int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
+  printf("Inicializando vetor de saltos...\n");
   // Vetor de saltos
   int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
   memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
+  printf("Lendo endereços...\n");
   // Inicia o vetor de endereços
   int portas_roteadores[QUANTIDADE_MAXIMA_NOS];
   char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO];
   le_roteadores(portas_roteadores, enderecos_roteadores);
 
+  printf("Inicializando tabela de roteamento e vetor de vizinhos...\n");
   // Inicia tabela de roteamento e vetor de vizinhos
   int quantidade_vizinhos = 0;
   vizinho_t vizinhos[QUANTIDADE_MAXIMA_NOS];
@@ -80,6 +84,7 @@ int main(int argc, char* argv[]) {
   // Log
   pthread_mutex_init(&log_mutex, NULL);
 
+  printf("Inicializando buffer de saída...\n");
   // Buffer de saída
   pacote_t buffer_saida[TAMANHO_BUFFER_SAIDA];
   pthread_mutex_t buffer_saida_mutex;
@@ -87,6 +92,7 @@ int main(int argc, char* argv[]) {
   int ultimo_pacote_buffer_saida = 0;
   memset(buffer_saida, 0, TAMANHO_BUFFER_SAIDA * sizeof(pacote_t));
 
+  printf("Inicializando buffer de entrada...\n");
   // Buffer de entrada
   pacote_t buffer_entrada[TAMANHO_BUFFER_ENTRADA];
   pthread_mutex_t buffer_entrada_mutex;
@@ -94,6 +100,7 @@ int main(int argc, char* argv[]) {
   int ultimo_pacote_buffer_entrada = 0;
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
+  printf("Iniciando threads...\n");
   /* Inicia o transmissor **************************************/
   pthread_t transmissor_thread_id;
   struct argumentos_transmissor_struct argumentos_transmissor;
