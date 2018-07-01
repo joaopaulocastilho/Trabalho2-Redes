@@ -32,14 +32,14 @@ void dados_pacote(char buffer[], pacote_t *pacote_recebido) {
    memset((char *) &si_me, 0, sizeof(si_me));
 
    si_me.sin_family = AF_INET;
-   si_me.sin_port = htons(routers_ports[node_id]);
+   si_me.sin_port = htons(routers_ports[node_id]); // AINDA NÃO TEM --> PEGAR A PORTA DO NODO!
    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
    // bind socket to port
    if (bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1) die("bind");
    // Sempre esperarndo a chegada de um pacote
    while (1) {
      // Tenta receber algum pacote
-     recv_len = recvfrom(s, buffer, PACKAGE_SIZE, 0, (struct sockaddr *) &si_other, &slen);
+     recv_len = recvfrom(s, buffer, TAMANHO_TOTAL_PACOTE, 0, (struct sockaddr *) &si_other, &slen);
      if (recv_len == -1) { die("recvfrom()"); }
      // Coleta as informações do pacote
      dados_pacote(buffer, &pacote_recebido); // Struct tem que usar ponteiro, pois ele copia até vetor!

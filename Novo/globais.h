@@ -3,6 +3,10 @@
 
 #include <stdio.h> // printf
 #include <string.h>
+#include <stdlib.h> // exit(0);
+#include <sys/types.h> // fork()
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include <pthread.h> // Para usar as threads
 #include <unistd.h> // Para usar mutex
 
@@ -45,6 +49,11 @@ int grava_log(char *mensagem) {
     fprintf(file, "%s\n", mensagem);
   pthread_mutex_unlock(&log_mutex);
   fclose(file);
+};
+
+void die(char *s) {
+  perror(s);
+  exit(1);
 };
 
 #endif
