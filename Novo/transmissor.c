@@ -67,7 +67,7 @@ void *transmissor(void *args) {
       pacote_envio.mensagem
     );
     grava_log(mensagem_log);
-  } while(0); // TODO: Mudar para 1 depois que estiver pronto
+  } while(1);
 }
 
 void envia_pacote(char *cadeia_caracteres,
