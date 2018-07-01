@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
   argumentos_receptor.buffer_entrada_mutex = &buffer_entrada_mutex;
   argumentos_receptor.buffer_entrada = buffer_entrada;
   argumentos_receptor.tamanho_buffer_entrada = TAMANHO_BUFFER_ENTRADA;
-  argumentos_receptor.ultimo_pacote_buffer_entrada = ultimo_pacote_buffer_entrada;
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
 
