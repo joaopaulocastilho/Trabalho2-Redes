@@ -82,7 +82,7 @@ void converte_pacote_para_char(pacote_t pacote, char *resultado) {
 /* Converte uma cadeia de caracteres para o pacote referenciado pelo ponteiro
  * pacote passado por parâmetro.
  */
-int converte_char_para_pacote(char *cadeia, pacote_t *pacote) {
+void converte_char_para_pacote(char *cadeia, pacote_t *pacote) {
   pacote->destino = cadeia[0] << 24;
   pacote->destino |= cadeia[1] << 16;
   pacote->destino |= cadeia[2] << 8;
@@ -94,5 +94,29 @@ int converte_char_para_pacote(char *cadeia, pacote_t *pacote) {
   pacote->origem |= cadeia[8];
   strncpy(pacote->mensagem, cadeia + 9, TAMANHO_MENSAGEM_PACOTE);
 };
+
+/* Função única para adicionar pacote ao buffer de saída. Retorna 0 se falhou
+ * ou 1 caso deu certo
+ */
+int enfileira_pacote_para_envio(pacote_t pacote,
+                                 pacote_t *buffer_saida,
+                                 pthread_mutex_t *buffer_saida_mutex,
+                                 int *indice_ultimo_pacote_buffer_saida) {
+  int proximo_espaco;
+  pacote_t pacote_checado;
+  int retorno = 1;
+
+  pthread_mutex_lock(buffer_saida_mutex);
+  proximo_espaco = ((*indice_ultimo_pacote_buffer_saida) + 1) % TAMANHO_BUFFER_SAIDA;
+  pacote_checado = buffer_saida[proximo_espaco];
+  if (pacote_checado.tipo != TIPO_PACOTE_VAZIO) {
+    retorno = 0;
+  } else {
+    buffer_saida[proximo_espaco] = pacote;
+  }
+  pthread_mutex_unlock(buffer_saida_mutex);
+
+  return retorno;
+}
 
 #endif
