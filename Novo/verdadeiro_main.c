@@ -3,13 +3,13 @@
 #include "receptor.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
-int le_roteadores(int portas_roteadores[MAXIMO_ROTEADORES], char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO]) {
+int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
   FILE *arquivo_roteadores;
   int id_roteador, router_port;
   char endereco_tmp[TAMANHO_MAXIMO_ENDERECO];
 
-  memset(portas_roteadores, -1, MAXIMO_ROTEADORES * sizeof(int));
-  memset(enderecos_roteadores, 0, MAXIMO_ROTEADORES * TAMANHO_MAXIMO_ENDERECO);
+  memset(portas_roteadores, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
+  memset(enderecos_roteadores, 0, QUANTIDADE_MAXIMA_NOS * TAMANHO_MAXIMO_ENDERECO);
 
   arquivo_roteadores = fopen("roteador.config", "r");
   if (!arquivo_roteadores) {
@@ -66,8 +66,8 @@ int main(int argc, char* argv[]) {
   memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
   // Inicia o vetor de endereços
-  int portas_roteadores[MAXIMO_ROTEADORES];
-  char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO];
+  int portas_roteadores[QUANTIDADE_MAXIMA_NOS];
+  char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO];
   le_roteadores(portas_roteadores, enderecos_roteadores);
 
   // Inicia tabela de roteamento e vetor de vizinhos

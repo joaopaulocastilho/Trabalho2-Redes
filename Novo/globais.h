@@ -26,7 +26,6 @@
 #define TAMANHO_BUFFER_SAIDA 516
 #define QUANTIDADE_MAXIMA_NOS 50
 #define TAMANHO_MAXIMO_ENDERECO 20
-#define MAXIMO_ROTEADORES 20 // Máximo de roteadores no arquivo de roteadores
 
 #define INFINITO 1123456789
 
