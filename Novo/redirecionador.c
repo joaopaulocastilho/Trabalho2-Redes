@@ -1,0 +1,8 @@
+#ifndef INCLUSAO_ARQUIVO_REDIRECIONADOR
+#define INCLUSAO_ARQUIVO_REDIRECIONADOR
+#include "globais.h"
+
+
+
+
+#endif
