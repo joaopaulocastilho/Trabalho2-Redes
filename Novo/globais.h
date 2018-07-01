@@ -29,6 +29,7 @@
 #define TAMANHO_MAXIMO_ENDERECO 20
 
 #define INFINITO 112345678
+#define TEMPO_PAUSA_EVD 5 // Tempo (em segundos) em que vamos mandar o vetor distâncias para os vizinhos.
 
 // Pacote: |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 typedef struct {

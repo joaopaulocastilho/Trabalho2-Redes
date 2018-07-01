@@ -4,6 +4,7 @@
 #include "redirecionador.c"
 #include "interface_envio_mensagem.c"
 #include "recebimento_impressao_mensagem.c"
+#include "envia_vetor_distancias.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -189,12 +190,30 @@ int main(int argc, char* argv[]) {
                  (void*)&argumentos_rim);
   /********************** Recebimento e Impressão de Mensagens */
 
+  /* Envia o vetor de distâncias periódicamente (evd) **********/
+  pthread_t envia_vetor_distancias_id;
+  struct argumentos_evd_struct argumentos_evd;
+  argumentos_evd.tabela_roteamento = tabela_roteamento;
+  argumentos_evd.buffer_saida = buffer_saida;
+  argumentos_evd.buffer_saida_mutex = &buffer_saida_mutex;
+  argumentos_evd.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+  argumentos_evd.id_nodo_atual = id_nodo_atual;
+  argumentos_evd.vizinhos = vizinhos;
+  argumentos_evd.quantidade_vizinhos = quantidade_vizinhos;
+
+  pthread_create(&envia_vetor_distancias_id,
+                 NULL,
+                 envia_vetor_distancias,
+                 (void*)&argumentos_evd);
+  /********** Envia o vetor de distâncias periódicamente (evd) */
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
   pthread_join(iem_thread_id, NULL);
   pthread_join(redirecionador_thread_id, NULL);
   pthread_join(recebimento_impressao_mensagem_thread_id, NULL);
+  pthread_join(envia_vetor_distancias_id, NULL);
   /*************************************************************/
   return 0;
 };
