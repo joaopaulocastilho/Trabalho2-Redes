@@ -2,6 +2,7 @@
 #include "transmissor.c"
 #include "receptor.c"
 #include "redirecionador.c"
+#include "interface_envio_mensagem.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -128,9 +129,27 @@ int main(int argc, char* argv[]) {
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
 
+  /* Inicia a interface de envio de mensagem (IEM)**************/
+  pthread_t iem_thread_id;
+  struct argumentos_iem_struct argumentos_interface_envio_mensagem;
+  argumentos_interface_envio_mensagem.buffer_saida = buffer_saida;
+  argumentos_interface_envio_mensagem.buffer_saida_mutex = &buffer_saida_mutex;
+  argumentos_interface_envio_mensagem.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+  argumentos_interface_envio_mensagem.id_nodo_atual = id_nodo_atual;
+  argumentos_interface_envio_mensagem.tamanho_buffer_saida = TAMANHO_BUFFER_SAIDA;
+  argumentos_interface_envio_mensagem.tamanho_mensagem_pacote = TAMANHO_MENSAGEM_PACOTE;
+  argumentos_interface_envio_mensagem.tipo_pacote_mensagem_usuario = TIPO_PACOTE_MENSAGEM_USUARIO;
+
+  pthread_create(&iem_thread_id,
+                 NULL,
+                 interface_envio_mensagem,
+                 (void*)&argumentos_interface_envio_mensagem);
+  /*************************************************************/
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
+  pthread_join(iem_thread_id, NULL);
   /*************************************************************/
   return 0;
 };
