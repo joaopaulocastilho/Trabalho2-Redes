@@ -11,10 +11,7 @@ struct argumentos_iem_struct {
   pthread_mutex_t *buffer_saida_mutex;
   pacote_t *buffer_saida;
   int *ultimo_pacote_buffer_saida;
-  int tamanho_buffer_saida;
   int id_nodo_atual;
-  int tamanho_mensagem_pacote;
-  int tipo_pacote_mensagem_usuario;
 };
 
 void *interface_envio_mensagem(void *args) {
@@ -22,10 +19,10 @@ void *interface_envio_mensagem(void *args) {
 
   /* Embora o tamanho do pacote seja um decimo desse número, esse vetor é
    * criado pro caso de o usuário quiser colocar uma mensagem gigante. A
-   * mensagem só é enviada com no máximo argumentos.tamanho_mensagem_pacote,
+   * mensagem só é enviada com no máximo TAMANHO_MENSAGEM_PACOTE,
    * porém.
    */
-  int tamanho_maximo_mensagem_entrada = argumentos->tamanho_mensagem_pacote * 10;
+  int tamanho_maximo_mensagem_entrada = TAMANHO_MENSAGEM_PACOTE * 10;
   char mensagem_envio[tamanho_maximo_mensagem_entrada];
 
   int roteador_destino;
@@ -37,11 +34,11 @@ void *interface_envio_mensagem(void *args) {
     printf("Envio de mensagem. Envie uma mensagem no formato: 1<Mensagem, onde 1 é o nó destino e \"Mensagem\" é a mensagem que quer enviar.\nDigite: ");
     scanf("%d<", &roteador_destino);
     fgets(mensagem_envio, tamanho_maximo_mensagem_entrada, stdin);
-    mensagem_envio[argumentos->tamanho_mensagem_pacote - 1] = '\0';
+    mensagem_envio[TAMANHO_MENSAGEM_PACOTE - 1] = '\0';
 
     /* Prepara o pacote */
     pacote_envio.destino = roteador_destino;
-    pacote_envio.tipo = argumentos->tipo_pacote_mensagem_usuario;
+    pacote_envio.tipo = TIPO_PACOTE_MENSAGEM_USUARIO;
     pacote_envio.origem = argumentos->id_nodo_atual;
     strcpy(pacote_envio.mensagem, mensagem_envio);
 

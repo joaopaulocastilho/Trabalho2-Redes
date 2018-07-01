@@ -64,19 +64,19 @@ int main(int argc, char* argv[]) {
 
   int id_nodo_atual = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
-  printf("Inicializando vetor de saltos...\n");
   // Vetor de saltos
+  printf("Inicializando vetor de saltos...\n");
   int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
   memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
-  printf("Lendo endereços...\n");
   // Inicia o vetor de endereços
+  printf("Lendo endereços...\n");
   int portas_roteadores[QUANTIDADE_MAXIMA_NOS];
   char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO];
   le_roteadores(portas_roteadores, enderecos_roteadores);
 
-  printf("Inicializando tabela de roteamento e vetor de vizinhos...\n");
   // Inicia tabela de roteamento e vetor de vizinhos
+  printf("Inicializando tabela de roteamento e vetor de vizinhos...\n");
   int quantidade_vizinhos = 0;
   vizinho_t vizinhos[QUANTIDADE_MAXIMA_NOS];
   int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS];
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
   // Log
   pthread_mutex_init(&log_mutex, NULL);
 
-  printf("Inicializando buffer de saída...\n");
   // Buffer de saída
+  printf("Inicializando buffer de saída...\n");
   pacote_t buffer_saida[TAMANHO_BUFFER_SAIDA];
   pthread_mutex_t buffer_saida_mutex;
   pthread_mutex_init(&buffer_saida_mutex, NULL);
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     buffer_saida[i].tipo = TIPO_PACOTE_VAZIO;
   }
 
-  printf("Inicializando buffer de entrada...\n");
   // Buffer de entrada
+  printf("Inicializando buffer de entrada...\n");
   pacote_t buffer_entrada[TAMANHO_BUFFER_ENTRADA];
   pthread_mutex_t buffer_entrada_mutex;
   pthread_mutex_init(&buffer_entrada_mutex, NULL);
@@ -129,16 +129,15 @@ int main(int argc, char* argv[]) {
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
 
-  /* Inicia a interface de envio de mensagem (IEM)**************/
+  /* Interface de Envio de Mensagem (IEM) **********************/
   pthread_t iem_thread_id;
+  // Parâmetros do buffer de saída
   struct argumentos_iem_struct argumentos_interface_envio_mensagem;
   argumentos_interface_envio_mensagem.buffer_saida = buffer_saida;
   argumentos_interface_envio_mensagem.buffer_saida_mutex = &buffer_saida_mutex;
   argumentos_interface_envio_mensagem.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+  // Parâmetros gerais
   argumentos_interface_envio_mensagem.id_nodo_atual = id_nodo_atual;
-  argumentos_interface_envio_mensagem.tamanho_buffer_saida = TAMANHO_BUFFER_SAIDA;
-  argumentos_interface_envio_mensagem.tamanho_mensagem_pacote = TAMANHO_MENSAGEM_PACOTE;
-  argumentos_interface_envio_mensagem.tipo_pacote_mensagem_usuario = TIPO_PACOTE_MENSAGEM_USUARIO;
 
   pthread_create(&iem_thread_id,
                  NULL,
