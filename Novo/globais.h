@@ -115,6 +115,7 @@ int enfileira_pacote_para_envio(pacote_t pacote,
   } else {
     buffer_saida[proximo_espaco] = pacote;
   }
+  *indice_ultimo_pacote_buffer_saida = proximo_espaco;
   pthread_mutex_unlock(buffer_saida_mutex);
 
   return retorno;
