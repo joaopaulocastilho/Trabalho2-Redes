@@ -3,6 +3,7 @@
 #include "receptor.c"
 #include "redirecionador.c"
 #include "interface_envio_mensagem.c"
+#include "recebimento_impressao_mensagem.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -170,11 +171,28 @@ int main(int argc, char* argv[]) {
                  (void*)&argumentos_redirecionador);
   /******************************************** Redirecionador */
 
+  /* Recebimento e Impressão de Mensagens **********************/
+  pthread_t recebimento_impressao_mensagem_thread_id;
+  struct argumentos_rim_struct argumentos_rim;
+  argumentos_rim.buffer_impressao = buffer_impressao;
+  argumentos_rim.buffer_impressao_mutex = &buffer_impressao_mutex;
+  argumentos_rim.buffer_saida = buffer_saida;
+  argumentos_rim.buffer_saida_mutex = &buffer_saida_mutex;
+  argumentos_rim.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+  argumentos_rim.id_nodo_atual = id_nodo_atual;
+
+  pthread_create(&recebimento_impressao_mensagem_thread_id,
+                 NULL,
+                 recebimento_impressao_mensagem,
+                 (void*)&argumentos_rim);
+  /********************** Recebimento e Impressão de Mensagens */
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
   pthread_join(iem_thread_id, NULL);
   pthread_join(redirecionador_thread_id, NULL);
+  pthread_join(recebimento_impressao_mensagem_thread_id, NULL);
   /*************************************************************/
   return 0;
 };
