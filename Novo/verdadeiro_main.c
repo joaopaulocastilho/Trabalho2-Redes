@@ -110,7 +110,6 @@ int main(int argc, char* argv[]) {
   struct argumentos_transmissor_struct argumentos_transmissor;
   argumentos_transmissor.buffer_saida_mutex = &buffer_saida_mutex;
   argumentos_transmissor.buffer_saida = buffer_saida;
-  argumentos_transmissor.tamanho_buffer_saida = TAMANHO_BUFFER_SAIDA;
   argumentos_transmissor.vetor_saltos = vetor_saltos;
   argumentos_transmissor.enderecos_vizinhos = enderecos_roteadores;
   argumentos_transmissor.portas_vizinhos = portas_roteadores;
@@ -122,7 +121,6 @@ int main(int argc, char* argv[]) {
   struct argumentos_receptor_struct argumentos_receptor;
   argumentos_receptor.buffer_entrada_mutex = &buffer_entrada_mutex;
   argumentos_receptor.buffer_entrada = buffer_entrada;
-  argumentos_receptor.tamanho_buffer_entrada = TAMANHO_BUFFER_ENTRADA;
   argumentos_receptor.portas_roteadores = portas_roteadores;
   argumentos_receptor.id_nodo_atual = id_nodo_atual;
 

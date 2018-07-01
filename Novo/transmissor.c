@@ -15,7 +15,6 @@ void envia_pacote(char *cadeia_caracteres,
 struct argumentos_transmissor_struct {
   pthread_mutex_t *buffer_saida_mutex;
   pacote_t *buffer_saida;
-  int tamanho_buffer_saida;
   int *vetor_saltos;
   char (*enderecos_vizinhos)[TAMANHO_MAXIMO_ENDERECO];
   int *portas_vizinhos;
@@ -39,7 +38,7 @@ void *transmissor(void *args) {
         continue;
       }
       argumentos->buffer_saida[indice_primeiro_pacote].tipo = TIPO_PACOTE_VAZIO;
-      indice_primeiro_pacote = (indice_primeiro_pacote + 1) % argumentos->tamanho_buffer_saida;
+      indice_primeiro_pacote = (indice_primeiro_pacote + 1) % TAMANHO_BUFFER_SAIDA;
     pthread_mutex_unlock(argumentos->buffer_saida_mutex);
 
     /* Busca o próximo salto para o nó de destino do pacote */
