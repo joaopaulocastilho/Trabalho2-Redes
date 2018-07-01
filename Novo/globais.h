@@ -6,6 +6,8 @@
 #include <pthread.h> // Para usar as threads
 #include <unistd.h> // Para usar mutex
 
+#define DEBUG_PRINT_LOG 1 // Tudo que vai pro LOG também é imprimido no console
+
 // Pacote:
 // |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 #define TIPO_PACOTE_MENSAGEM_USUARIO 1
@@ -29,5 +31,19 @@ typedef struct {
   int origem;
   char mensagem[TAMANHO_MENSAGEM_PACOTE];
 } pacote_t;
+
+pthread_mutex_t log_mutex;
+
+int grava_log(char *mensagem) {
+  FILE *file;
+  file = fopen("./log.txt", "a");
+  pthread_mutex_lock(&log_mutex);
+    if (DEBUG_PRINT_LOG) {
+      printf("%s\n", mensagem);
+    }
+    fprintf(file, "%s\n", mensagem);
+  pthread_mutex_unlock(&log_mutex);
+  fclose(file);
+};
 
 #endif
