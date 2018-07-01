@@ -19,6 +19,10 @@ struct argumentos_redirecionador_struct {
   int *ultimo_pacote_buffer_impressao;
 };
 
+int adiciona_pacote_buffer_impressao(
+  pacote_t pacote,
+  struct argumentos_redirecionador_struct *argumentos);
+
 void *redirecionador(void *args) {
   struct argumentos_redirecionador_struct* argumentos = (struct argumentos_redirecionador_struct*) args;
   pacote_t pacote_redirecionar;
@@ -48,31 +52,53 @@ void *redirecionador(void *args) {
 
     /* Mensagem de usuário recebida */
     if (pacote_redirecionar.tipo == TIPO_PACOTE_MENSAGEM_USUARIO) {
-      pthread_mutex_lock(argumentos->buffer_impressao_mutex);
-        proximo_ultimo_pacote_impressao = *(argumentos->ultimo_pacote_buffer_impressao) + 1;
-        ultimo_pacote_vetor = argumentos->buffer_impressao[proximo_ultimo_pacote_impressao];
-        if (ultimo_pacote_vetor.tipo != TIPO_PACOTE_VAZIO) {
-          // Vetor cheio
-          pthread_mutex_unlock(argumentos->buffer_impressao_mutex);
-          sprintf(mensagem_log,
-            "[REDIRECIONADOR] Falha ao tentar adicionar pacote de origem [%d] e tipo [%d] ao buffer de impressão.",
-            pacote_redirecionar.origem,
-            pacote_redirecionar.tipo);
-          grava_log(mensagem_log);
-          continue;
-        }
+      int adicionou_pacote = adiciona_pacote_buffer_impressao(pacote_redirecionar,
+                                                              argumentos);
+      // Imprime no log se adicionou ou não o pacotu ao buffer de impressão
+      if (adicionou_pacote) {
+        sprintf(mensagem_log,
+                "[REDIRECIONADOR] Pacote de origem [%d] e tipo [%d] adicionado ao buffer de impressão.",
+                pacote_redirecionar.origem,
+                pacote_redirecionar.tipo);
+        grava_log(mensagem_log);
+        continue;
+      }
 
-        argumentos->buffer_impressao[proximo_ultimo_pacote_impressao] = pacote_redirecionar;
-        (*argumentos->ultimo_pacote_buffer_impressao) = proximo_ultimo_pacote_impressao;
-      pthread_mutex_unlock(argumentos->buffer_impressao_mutex);
       sprintf(mensagem_log,
-        "[REDIRECIONADOR] Pacote de origem [%d] e tipo [%d] adicionado ao buffer de impressão.",
-        pacote_redirecionar.origem,
-        pacote_redirecionar.tipo);
+              "[REDIRECIONADOR] Falha ao tentar adicionar pacote de origem [%d] e tipo [%d] ao buffer de impressão.",
+              pacote_redirecionar.origem,
+              pacote_redirecionar.tipo);
       grava_log(mensagem_log);
       continue;
     }
   } while (1);
 }
+
+int adiciona_pacote_buffer_impressao(
+  pacote_t pacote,
+  struct argumentos_redirecionador_struct *argumentos) {
+
+  pacote_t ultimo_pacote_vetor; // variável auxiliar
+  int proximo_ultimo_pacote_impressao;
+
+  pthread_mutex_lock(argumentos->buffer_impressao_mutex);
+    // Pega índice do próximo espaço para por
+    proximo_ultimo_pacote_impressao = *(argumentos->ultimo_pacote_buffer_impressao) + 1;
+    proximo_ultimo_pacote_impressao %= TAMANHO_BUFFER_IMPRESSAO;
+
+    // Pega pacote que está na posição desejada
+    ultimo_pacote_vetor = argumentos->buffer_impressao[proximo_ultimo_pacote_impressao];
+
+    if (ultimo_pacote_vetor.tipo != TIPO_PACOTE_VAZIO) {
+      // Vetor cheio
+      pthread_mutex_unlock(argumentos->buffer_impressao_mutex);
+      return 0;
+    }
+
+    argumentos->buffer_impressao[proximo_ultimo_pacote_impressao] = pacote;
+    (*argumentos->ultimo_pacote_buffer_impressao) = proximo_ultimo_pacote_impressao;
+  pthread_mutex_unlock(argumentos->buffer_impressao_mutex);
+  return 1;
+};
 
 #endif
