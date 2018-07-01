@@ -11,13 +11,18 @@
    pthread_mutex_t *buffer_entrada_mutex;
    pacote_t *buffer_entrada;
    int tamanho_buffer_entrada;
-   int ultimo_pacote_buffer_entrada;
  };
+
+void dados_pacote(char buffer[], pacote_t *pacote_recebido) {
+  //Abre o pacote e coloca as informações em pacote_recebido.
+}
 
  void* receptor(void *args) {
    struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
+   int ultimo_pacote_entrada;
 
    char buffer[TAMANHO_TOTAL_PACOTE]; // Buffer onde o pacote recebido vai entrar
+   pacote_t pacote_recebido, prox_posicao;
    // Inicializar os socktes UDP
    struct sockaddr_in si_me, si_other;
    int s, slen = sizeof(si_other), recv_len;
@@ -36,13 +41,16 @@
      // Tenta receber algum pacote
      recv_len = recvfrom(s, buffer, PACKAGE_SIZE, 0, (struct sockaddr *) &si_other, &slen);
      if (recv_len == -1) { die("recvfrom()"); }
+     // Coleta as informações do pacote
+     dados_pacote(buffer, &pacote_recebido); // Struct tem que usar ponteiro, pois ele copia até vetor!
      // Guarda o pacote no buffer de entrada com todos os pacotes
      pthread_mutex_lock(argumentos->buffer_entrada_mutex);
-
-
-
+     prox_posicao = argumentos->buffer_entrada[ultimo_pacote_entrada];
+     if (prox_posicao.tipo == TIPO_PACOTE_VAZIO) {
+       argumentos->buffer_entrada[ultimo_pacote_entrada] = pacote_recebido;
+       ultimo_pacote_entrada = (ultimo_pacote_entrada + 1) % TAMANHO_BUFFER_ENTRADA;
+     }
      pthread_mutex_unlock(argumentos->buffer_entrada_mutex);
-     return NULL;
    }
  }
 
