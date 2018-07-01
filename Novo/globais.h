@@ -27,6 +27,8 @@
 #define TAMANHO_BUFFER_ENTRADA 516
 #define TAMANHO_BUFFER_SAIDA 516
 #define QUANTIDADE_MAXIMA_NOS 50
+#define TAMANHO_MAXIMO_ENDERECO 20
+#define MAXIMO_ROTEADORES 20 // Máximo de roteadores no arquivo de roteadores
 
 #define INFINITO 1123456789
 
@@ -55,5 +57,27 @@ void die(char *s) {
   perror(s);
   exit(1);
 };
+
+/** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
+int le_roteadores(int portas_roteadores[MAXIMO_ROTEADORES], char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO]) {
+  FILE *arquivo_roteadores;
+  int id_roteador, router_port;
+  char endereco_tmp[TAMANHO_MAXIMO_ENDERECO];
+
+  memset(portas_roteadores, -1, MAXIMO_ROTEADORES * sizeof(int));
+  memset(enderecos_roteadores, 0, MAXIMO_ROTEADORES * TAMANHO_MAXIMO_ENDERECO);
+
+  arquivo_roteadores = fopen("roteador.config", "r");
+  if (!arquivo_roteadores) {
+    return 1;
+  }
+
+  while(fscanf(arquivo_roteadores, "%d %d %s\n", &id_roteador, &router_port, endereco_tmp) != EOF) {
+    portas_roteadores[id_roteador] = router_port;
+    strcpy(enderecos_roteadores[id_roteador], endereco_tmp);
+  }
+  fclose(arquivo_roteadores);
+  return 0;
+}
 
 #endif

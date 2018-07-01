@@ -10,9 +10,13 @@ int main(int argc, char* argv[]) {
 
   int nodo_processo_id = *argv[1] - '0'; // Pega o ID do nó passado por argumento na execução
 
+  // Inicia o vetor de endereços
+  int portas_roteadores[MAXIMO_ROTEADORES];
+  char enderecos_roteadores[MAXIMO_ROTEADORES][TAMANHO_MAXIMO_ENDERECO];
+  le_roteadores(portas_roteadores, enderecos_roteadores);
+
   // Log
   pthread_mutex_init(&log_mutex, NULL);
-
 
   // Buffer de saída
   pacote_t buffer_saida[TAMANHO_BUFFER_SAIDA];
@@ -48,6 +52,9 @@ int main(int argc, char* argv[]) {
   argumentos_receptor.buffer_entrada_mutex = &buffer_entrada_mutex;
   argumentos_receptor.buffer_entrada = buffer_entrada;
   argumentos_receptor.tamanho_buffer_entrada = TAMANHO_BUFFER_ENTRADA;
+  argumentos_receptor.portas_roteadores = portas_roteadores;
+  argumentos_receptor.id_nodo_atual = nodo_processo_id;
+
   pthread_create(&receptor_thread_id, NULL, receptor, (void*)&argumentos_receptor);
   /*************************************************************/
 

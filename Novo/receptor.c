@@ -11,6 +11,8 @@
    pthread_mutex_t *buffer_entrada_mutex;
    pacote_t *buffer_entrada;
    int tamanho_buffer_entrada;
+   int *portas_roteadores;
+   int id_nodo_atual;
  };
 
 void dados_pacote(char buffer[], pacote_t *pacote_recebido) {
@@ -20,6 +22,7 @@ void dados_pacote(char buffer[], pacote_t *pacote_recebido) {
  void* receptor(void *args) {
    struct argumentos_receptor_struct* argumentos = (struct argumentos_receptor_struct*) args;
    int ultimo_pacote_entrada;
+   int nodo_atual = argumentos->id_nodo_atual;
 
    char buffer[TAMANHO_TOTAL_PACOTE]; // Buffer onde o pacote recebido vai entrar
    pacote_t pacote_recebido, prox_posicao;
@@ -32,7 +35,7 @@ void dados_pacote(char buffer[], pacote_t *pacote_recebido) {
    memset((char *) &si_me, 0, sizeof(si_me));
 
    si_me.sin_family = AF_INET;
-   si_me.sin_port = htons(routers_ports[node_id]); // AINDA NÃO TEM --> PEGAR A PORTA DO NODO!
+   si_me.sin_port = htons(argumentos->portas_roteadores[nodo_atual]); // AINDA NÃO TEM --> PEGAR A PORTA DO NODO!
    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
    // bind socket to port
    if (bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1) die("bind");
