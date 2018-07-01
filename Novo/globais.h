@@ -64,7 +64,7 @@ void die(char *s) {
 /* Converte pacote para tripa de char. Resultado deve ter tamanho de
  * TAMANHO_TOTAL_PACOTE ou mais, mas só isso será escrito.
  */
-int converte_pacote_para_char(pacote_t pacote, char *resultado) {
+void converte_pacote_para_char(pacote_t pacote, char *resultado) {
   snprintf(resultado,
           TAMANHO_TOTAL_PACOTE,
           "%c%c%c%c%c%c%c%c%c%s",
@@ -78,6 +78,22 @@ int converte_pacote_para_char(pacote_t pacote, char *resultado) {
           pacote.origem >> 8,
           pacote.origem,
           pacote.mensagem);
+};
+
+/* Converte uma cadeia de caracteres para o pacote referenciado pelo ponteiro
+ * pacote passado por parâmetro.
+ */
+int converte_char_para_pacote(char *cadeia, pacote_t *pacote) {
+  pacote->destino = cadeia[0] << 24;
+  pacote->destino |= cadeia[1] << 16;
+  pacote->destino |= cadeia[2] << 8;
+  pacote->destino |= cadeia[3];
+  pacote->tipo = cadeia[4];
+  pacote->origem = cadeia[5] << 24;
+  pacote->origem |= cadeia[6] << 16;
+  pacote->origem |= cadeia[7] << 8;
+  pacote->origem |= cadeia[8];
+  strncpy(pacote->mensagem, cadeia + 9, TAMANHO_MENSAGEM_PACOTE);
 };
 
 #endif

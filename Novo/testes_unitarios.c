@@ -5,7 +5,7 @@ int testa_converte_pacote_para_char() {
   pacote_t pacote_entrada;
   char resultado[1000];
   char resultado_esperado[500];
-  strcpy(resultado_esperado, "@@@@B@@@@Mensagem");
+  strcpy(resultado_esperado, "AAAABAAAAMensagem");
   pacote_entrada.destino = 1094795585;
   pacote_entrada.tipo = 66;
   pacote_entrada.origem = 1094795585;
@@ -13,11 +13,36 @@ int testa_converte_pacote_para_char() {
   converte_pacote_para_char(pacote_entrada, resultado);
 
 
-  int teste = strcmp(resultado_esperado, resultado);
-  return teste == -1;
+  int resultado_comparacao = strcmp(resultado_esperado, resultado);
+  return resultado_comparacao == 0;
 };
 
+/* Testa a função converte_char_para_pacote */
+int testa_converte_char_para_pacote() {
+  pacote_t pacote;
+  char cadeia_entrada[500];
+  strcpy(cadeia_entrada, "AAAABAAAAMensagem");
+  converte_char_para_pacote(cadeia_entrada, &pacote);
+
+  if (pacote.destino != 1094795585) return 0;
+  if (pacote.tipo != 66) return 0;
+  if (pacote.origem != 1094795585) return 0;
+  int resultado_comparacao = strcmp(pacote.mensagem, "Mensagem");
+  return resultado_comparacao == 0;
+};
+
+void passou() {
+  printf("Passou!\n");
+}
+
+void falhou() {
+  printf("Falhou!\n");
+}
+
 int main() {
-  printf("Testando função testa_converte_pacote_para_char: %s\n", testa_converte_pacote_para_char() ? "Passou!" : "Falhou");
+  printf("Testando função converte_pacote_para_char: ");
+  testa_converte_pacote_para_char() ? passou() : falhou();
+  printf("Testando função converte_char_para_pacote: ");
+  testa_converte_char_para_pacote() ? passou() : falhou();
   return 0;
 };
