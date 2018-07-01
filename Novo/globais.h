@@ -48,7 +48,7 @@ int grava_log(char *mensagem) {
   file = fopen("./log.txt", "a");
   pthread_mutex_lock(&log_mutex);
     if (DEBUG_PRINT_LOG) {
-      printf("%s\n", mensagem);
+      printf("\033[1m\033[32m[LOG]\033[0m%s\n", mensagem);
     }
     fprintf(file, "%s\n", mensagem);
   pthread_mutex_unlock(&log_mutex);
