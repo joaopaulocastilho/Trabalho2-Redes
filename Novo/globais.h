@@ -121,4 +121,16 @@ int enfileira_pacote_para_envio(pacote_t pacote,
   return retorno;
 }
 
+// Recebe o nodo que está chamando a função e a tabela de roteamento para atualizar as distância de nodo_atual.
+void atualiza_tabela_roteamento(int nodo_atual, int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS]) {
+  int i = nodo_atual, j, k, custo, menor = INFINITO;
+  for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) {
+    for (menor = INFINITO, k = 0; k < QUANTIDADE_MAXIMA_NOS; k++) {
+      custo = tabela_roteamento[i][k] + tabela_roteamento[k][j];
+      if (custo < menor) menor = custo;
+    }
+    tabela_roteamento[i][j] = menor;
+  }
+}
+
 #endif
