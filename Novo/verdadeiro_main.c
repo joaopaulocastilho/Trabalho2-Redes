@@ -5,6 +5,7 @@
 #include "interface_envio_mensagem.c"
 #include "recebimento_impressao_mensagem.c"
 #include "envia_vetor_distancias.c"
+#include "atualiza_tabela_roteamento_vetor_saltos.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -69,6 +70,8 @@ int main(int argc, char* argv[]) {
   // Vetor de saltos
   printf("Inicializando vetor de saltos...\n");
   int vetor_saltos[QUANTIDADE_MAXIMA_NOS];
+  pthread_mutex_t vetor_saltos_mutex;
+  pthread_mutex_init(&vetor_saltos_mutex, NULL);
   memset(vetor_saltos, -1, QUANTIDADE_MAXIMA_NOS * sizeof(int));
 
   // Inicia o vetor de endereços
@@ -224,6 +227,26 @@ int main(int argc, char* argv[]) {
                  (void*)&argumentos_evd);
   /********** Envia o vetor de distâncias periódicamente (evd) */
 
+  /* Atualiza a Tabela de Roteamento (ATR) *********************/
+  pthread_t atualiza_tabela_roteamento_vetor_saltos_id;
+  struct argumentos_atrvs_struct argumentos_atrvs;
+
+  // Informações sobre a tabela de roteamento
+  argumentos_atrvs.tabela_roteamento = tabela_roteamento;
+  argumentos_atrvs.tabela_roteamento_mutex = &tabela_roteamento_mutex;
+  // Parâmetros do Buffer de Vetor Distância
+  argumentos_atrvs.buffer_vetor_distancia = buffer_vetor_distancia;
+  argumentos_atrvs.buffer_vetor_distancia_mutex = &buffer_vetor_distancia_mutex;
+  // Vetor de Saltos
+  argumentos_atrvs.vetor_saltos = vetor_saltos;
+  argumentos_atrvs.vetor_saltos_mutex = &vetor_saltos_mutex;
+
+  pthread_create(&atualiza_tabela_roteamento_vetor_saltos_id,
+                 NULL,
+                 atualiza_tabela_roteamento_vetor_saltos,
+                 (void*)&argumentos_atrvs);
+  /********************** Atualiza a Tabela de Roteamento (ATR) */
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
@@ -231,6 +254,7 @@ int main(int argc, char* argv[]) {
   pthread_join(redirecionador_thread_id, NULL);
   pthread_join(recebimento_impressao_mensagem_thread_id, NULL);
   pthread_join(envia_vetor_distancias_id, NULL);
+  pthread_join(atualiza_tabela_roteamento_vetor_saltos_id, NULL);
   /*************************************************************/
   return 0;
 };
