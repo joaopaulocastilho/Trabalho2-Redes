@@ -32,7 +32,6 @@
        pacote_vetor_distancia.origem = nodo_atual;
        pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
        for (j = 0; j < 4; j++) {
-         argumentos->tabela_roteamento[nodo_atual][j]++;
          pacote_vetor_distancia.mensagem[4 * j] = (char)argumentos->tabela_roteamento[nodo_atual][j] >> 24;
          pacote_vetor_distancia.mensagem[4 * j + 1] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 16;
          pacote_vetor_distancia.mensagem[4 * j + 2] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 8;
