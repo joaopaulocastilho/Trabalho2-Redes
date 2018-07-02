@@ -22,6 +22,7 @@
    int i, j;
    int inseriu_buffer_saida; // Uma flag para saber se a mensagem foi inserida no buffer de saída.
    char mensagem_log[5000];
+   char string_descricao_pacote[500]; // Variável auxiliar
 
    pacote_t pacote_vetor_distancia;
    while (1) {
@@ -30,34 +31,37 @@
        pacote_vetor_distancia.destino = argumentos->vizinhos[i].id;
        pacote_vetor_distancia.tipo = TIPO_PACOTE_VETOR_DISTANCIA;
        pacote_vetor_distancia.origem = nodo_atual;
+
        pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
-       for (j = 0; j < 4; j++) {
+       // Coloca a distância até os outros nós na mensagem do pacote
+       for (j = 0; j < TAMANHO_MENSAGEM_PACOTE / 4; j++) {
          pacote_vetor_distancia.mensagem[4 * j] = (char)argumentos->tabela_roteamento[nodo_atual][j] >> 24;
          pacote_vetor_distancia.mensagem[4 * j + 1] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 16;
          pacote_vetor_distancia.mensagem[4 * j + 2] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 8;
          pacote_vetor_distancia.mensagem[4 * j + 3] |= (char)argumentos->tabela_roteamento[nodo_atual][j];
        }
        pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
+
        // Conseguiu encaminhar o pacote?
        inseriu_buffer_saida = enfileira_pacote_para_envio(pacote_vetor_distancia, argumentos->buffer_saida, argumentos->buffer_saida_mutex, argumentos->ultimo_pacote_buffer_saida);
-       if (inseriu_buffer_saida) {
-         sprintf( // Conseguiu Conseguiu guardar a mensagem no buffer de saída para o próximo salto até o destino.
-           mensagem_log,
-           "[Envia Vetor Distâncias] Pacote do tipo [%d] colocado no buffer de saída com origem [%d], destino [%d].",
-           pacote_vetor_distancia.tipo,
-           pacote_vetor_distancia.origem,
-           pacote_vetor_distancia.destino
-        );
-        grava_log(mensagem_log);
-      } else {
-        sprintf( // Não conseguiu Conseguiu guardar a mensagem no buffer de saída para o próximo salto até o destino.
+
+
+      /* Grava no log o resultado */
+      informacoes_pacote(pacote_vetor_distancia, string_descricao_pacote);
+      if (inseriu_buffer_saida) {
+        sprintf(
           mensagem_log,
-          "[Envia Vetor Distâncias] Pacote do tipo [%d] com origem [%d], destino [%d] descartado por falta de espaço no buffer de saída.",
-          pacote_vetor_distancia.tipo,
-          pacote_vetor_distancia.origem,
-          pacote_vetor_distancia.destino
+          "[ENVIA VETOR DISTÂNCIA] Pacote colocado no buffer de saída  Info: { %s }.",
+          string_descricao_pacote
+        );
+      } else { // if (inseriu_buffer_saida)
+        sprintf(
+          mensagem_log,
+          "[ENVIA VETOR DISTÂNCIA] Pacote descartado por falta de espaço no buffer de saída. Info: { %s }",
+          string_descricao_pacote
         );
       }
+      grava_log(mensagem_log);
     }
     //imprime_tabela_roteamento(argumentos->tabela_roteamento); // DEBUG
     // Vamos esperar um tempo até mandar novamente!
