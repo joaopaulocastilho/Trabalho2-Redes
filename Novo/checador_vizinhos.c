@@ -3,7 +3,11 @@
 #include "globais.h"
 
 /** Checador de vizinhos
- * Thread responsável por mandar um pacote do tipo TIPO_PACOTE_CHECA_NO_ATIVO para todos os vizinhos. A thread dorme por TEMPO_PAUSA_RESPOSTA_CHECAGEM_VIZINHOS segundos. Depois checa no vetor_checagem_vizinhos_ativos quais vizinhos responderam. Atualiza a distância dos que não responderam para INFINITO no vetor de vizinhos.
+ * Thread responsável por mandar um pacote do tipo TIPO_PACOTE_CHECA_NO_ATIVO
+ * para todos os vizinhos. A thread dorme por
+ * TEMPO_PAUSA_RESPOSTA_CHECAGEM_VIZINHOS segundos. Depois checa no
+ * vetor_checagem_vizinhos_ativos quais vizinhos responderam. Atualiza a
+ * distância dos que não responderam para INFINITO no vetor de vizinhos.
  */
 
 struct argumentos_checador_vizinhos_struct {

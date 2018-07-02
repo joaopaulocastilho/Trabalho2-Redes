@@ -138,6 +138,13 @@ int main(int argc, char* argv[]) {
   pthread_mutex_init(&respostas_checagem_vizinhos_mutex, NULL);
   char respostas_checagem_vizinhos[QUANTIDADE_MAXIMA_NOS];
 
+  // Vetor de checagens recebidas
+  printf("Inicializando o vetor de checagens recebidas...\n");
+  pthread_mutex_t checagens_recebidas_mutex;
+  pthread_mutex_init(&checagens_recebidas_mutex, NULL);
+  pacote_t checagens_recebidas[TAMANHO_CHECAGENS_RECEBIDAS];
+  int ultima_checagem_recebida = -1;
+
   printf("Iniciando threads...\n");
 
   /* Inicia o transmissor **************************************/
@@ -194,6 +201,10 @@ int main(int argc, char* argv[]) {
   argumentos_redirecionador.buffer_vetor_distancia = buffer_vetor_distancia;
   argumentos_redirecionador.buffer_vetor_distancia_mutex = &buffer_vetor_distancia_mutex;
   argumentos_redirecionador.ultimo_pacote_buffer_vetor_distancia = &ultimo_pacote_buffer_vetor_distancia;
+  // Parâmetros do vetor de checagens recebidas
+  argumentos_redirecionador.checagens_recebidas_mutex = &checagens_recebidas_mutex;
+  argumentos_redirecionador.ultima_checagem_recebida = &ultima_checagem_recebida;
+  argumentos_redirecionador.checagens_recebidas = checagens_recebidas;
 
   pthread_create(&redirecionador_thread_id,
                  NULL,

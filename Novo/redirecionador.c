@@ -21,13 +21,15 @@ struct argumentos_redirecionador_struct {
   pacote_t *buffer_vetor_distancia;
   pthread_mutex_t *buffer_vetor_distancia_mutex;
   int *ultimo_pacote_buffer_vetor_distancia;
+
+  pthread_mutex_t *checagens_recebidas_mutex;
+  int *ultima_checagem_recebida;
+  pacote_t *checagens_recebidas;
 };
 
-int adiciona_pacote_buffer_impressao(
-  pacote_t pacote,
-  struct argumentos_redirecionador_struct *argumentos);
-
-  int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
+int adiciona_pacote_buffer_impressao(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
+int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
+int adiciona_pacote_checagens_recebidas(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
 
 void *redirecionador(void *args) {
   struct argumentos_redirecionador_struct* argumentos = (struct argumentos_redirecionador_struct*) args;
@@ -98,6 +100,30 @@ void *redirecionador(void *args) {
           grava_log(mensagem_log);
           continue;
     }
+
+    /* Mensagem de checagem de vizinhos */
+    if (pacote_redirecionar.tipo == TIPO_PACOTE_CHECA_NO_ATIVO) {
+      int adicionou_pacote = adiciona_pacote_checagens_recebidas(
+        pacote_redirecionar,
+        argumentos
+      );
+
+      if (adicionou_pacote) {
+        sprintf(mensagem_log,
+                "[REDIRECIONADOR] Pacote de origem [%d] e tipo [%d] adicionado ao vetor de checagens recebidas.",
+                pacote_redirecionar.origem,
+                pacote_redirecionar.tipo);
+        grava_log(mensagem_log);
+        continue;
+      }
+
+      sprintf(mensagem_log,
+              "[REDIRECIONADOR] Falha ao tentar adicionar pacote de origem [%d] e tipo [%d] ao vetor de checagens recebidas.",
+              pacote_redirecionar.origem,
+              pacote_redirecionar.tipo);
+      grava_log(mensagem_log);
+      continue;
+    }
   } while (1);
 }
 
@@ -151,5 +177,32 @@ int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_re
   pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
   return 1;
 }
+
+int adiciona_pacote_checagens_recebidas(
+  pacote_t pacote,
+  struct argumentos_redirecionador_struct *argumentos) {
+
+  pacote_t ultimo_pacote_vetor; // variável auxiliar
+  int proximo_ultima_checagem_recebida;
+
+  pthread_mutex_lock(argumentos->checagens_recebidas_mutex);
+    // Pega índice do próximo espaço para por
+    proximo_ultima_checagem_recebida = *(argumentos->ultima_checagem_recebida) + 1;
+    proximo_ultima_checagem_recebida %= TAMANHO_CHECAGENS_RECEBIDAS;
+
+    // Pega pacote que está na posição desejada
+    ultimo_pacote_vetor = argumentos->checagens_recebidas[proximo_ultima_checagem_recebida];
+
+    if (ultimo_pacote_vetor.tipo != TIPO_PACOTE_VAZIO) {
+      // Vetor cheio
+      pthread_mutex_unlock(argumentos->checagens_recebidas_mutex);
+      return 0;
+    }
+
+    argumentos->checagens_recebidas[proximo_ultima_checagem_recebida] = pacote;
+    (*argumentos->ultima_checagem_recebida) = proximo_ultima_checagem_recebida;
+  pthread_mutex_unlock(argumentos->checagens_recebidas_mutex);
+  return 1;
+};
 
 #endif
