@@ -22,7 +22,7 @@
    struct argumentos_atrvs_struct* argumentos = (struct argumentos_atrvs_struct*) args;
    int nodo_atual = argumentos->id_nodo_atual;
    int indice_primeiro_pacote = 0;
-   int i, j;
+   int i, j, nova_distancia;
    pacote_t pacote_vetor_distancia; // Pacote a ser enviado.
    char mensagem_log[5000];
 
@@ -42,8 +42,12 @@
      //Atualizar tabela de roteamento com o novo vetor distância no nó origem que mandou esse pacote
      i = pacote_vetor_distancia.origem; // Linha da tabela de roteamento que vai atualizar na tabela de roteamento
      pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
-     for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) {
-       argumentos->tabela_roteamento[i][j] = pacote_vetor_distancia.mensagem[j];
+     for (j = 0; j < 5; j++) {
+       nova_distancia = pacote_vetor_distancia.mensagem[j * 4] << 24;
+       nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 1] << 16;
+       nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 2] << 8;
+       nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 3];
+       argumentos->tabela_roteamento[i][j] = nova_distancia;
      }
      pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
      // Atualizar o vetor distância do nó atual

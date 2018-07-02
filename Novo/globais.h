@@ -70,9 +70,10 @@ void die(char *s) {
  * TAMANHO_TOTAL_PACOTE ou mais, mas só isso será escrito.
  */
 void converte_pacote_para_char(pacote_t pacote, char *resultado) {
+  int j = 0;
   snprintf(resultado,
           TAMANHO_TOTAL_PACOTE,
-          "%c%c%c%c%c%c%c%c%c%s",
+          "%c%c%c%c%c%c%c%c%c",
           pacote.destino >> 24,
           pacote.destino >> 16,
           pacote.destino >> 8,
@@ -81,8 +82,10 @@ void converte_pacote_para_char(pacote_t pacote, char *resultado) {
           pacote.origem >> 24,
           pacote.origem >> 16,
           pacote.origem >> 8,
-          pacote.origem,
-          pacote.mensagem);
+          pacote.origem);
+  for (int i = TAMANHO_TOTAL_PACOTE - TAMANHO_MENSAGEM_PACOTE; i < TAMANHO_TOTAL_PACOTE; i++, j++) {
+    resultado[i] = pacote.mensagem[j];
+  }
 };
 
 /* Converte uma cadeia de caracteres para o pacote referenciado pelo ponteiro
@@ -138,6 +141,17 @@ void atualiza_tabela_roteamento(int nodo_atual, int tabela_roteamento[QUANTIDADE
     tabela_roteamento[i][j] = menor;
   }
   pthread_mutex_unlock(tabela_roteamento_mutex);
+}
+
+// Debug
+void imprime_tabela_roteamento(int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS]) {
+  int i, j;
+  for (i = 1; i <= 5; i++) {
+    printf("\n");
+    for (j = 1; j <= 5; j++) {
+      printf("%d ", tabela_roteamento[i][j]);
+    }
+  }
 }
 
 #endif

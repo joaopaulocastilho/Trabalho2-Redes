@@ -31,8 +31,12 @@
        pacote_vetor_distancia.tipo = TIPO_PACOTE_VETOR_DISTANCIA;
        pacote_vetor_distancia.origem = nodo_atual;
        pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
-       for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) {
-         pacote_vetor_distancia.mensagem[j] = argumentos->tabela_roteamento[nodo_atual][j];
+       for (j = 0; j < 4; j++) {
+         argumentos->tabela_roteamento[nodo_atual][j]++;
+         pacote_vetor_distancia.mensagem[4 * j] = (char)argumentos->tabela_roteamento[nodo_atual][j] >> 24;
+         pacote_vetor_distancia.mensagem[4 * j + 1] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 16;
+         pacote_vetor_distancia.mensagem[4 * j + 2] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 8;
+         pacote_vetor_distancia.mensagem[4 * j + 3] |= (char)argumentos->tabela_roteamento[nodo_atual][j];
        }
        pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
        // Conseguiu encaminhar o pacote?
@@ -56,6 +60,7 @@
         );
       }
     }
+    //imprime_tabela_roteamento(argumentos->tabela_roteamento); // DEBUG
     // Vamos esperar um tempo até mandar novamente!
     sleep(TEMPO_PAUSA_EVD);
   }

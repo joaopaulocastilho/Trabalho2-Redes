@@ -52,7 +52,7 @@ void *transmissor(void *args) {
     /* Envia pacote */
     converte_pacote_para_char(pacote_envio, cadeia_caracteres_pacote);
     envia_pacote(cadeia_caracteres_pacote,
-                 9 + strlen(cadeia_caracteres_pacote + 9),
+                 TAMANHO_TOTAL_PACOTE,
                  argumentos->enderecos_vizinhos[proximo_salto_envio],
                  argumentos->portas_vizinhos[proximo_salto_envio]);
 
