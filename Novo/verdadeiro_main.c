@@ -7,6 +7,7 @@
 #include "envia_vetor_distancias.c"
 #include "atualiza_tabela_roteamento_vetor_saltos.c"
 #include "checador_vizinhos.c"
+#include "responde_checagem_vizinhos.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -292,6 +293,23 @@ int main(int argc, char* argv[]) {
                  (void*)&argumentos_checador_vizinhos);
   /************************************** Checador de Vizinhos */
 
+  /* Responde Checagem de Vizinhos *****************************/
+  pthread_t responde_checagem_vizinhos_thread_id;
+  struct argumentos_responde_checagem_vizinhos_struct argumentos_responde_checagem_vizinhos;
+
+  argumentos_responde_checagem_vizinhos.checagens_recebidas_mutex = &checagens_recebidas_mutex;
+  argumentos_responde_checagem_vizinhos.checagens_recebidas = checagens_recebidas;
+  argumentos_responde_checagem_vizinhos.id_nodo_atual = id_nodo_atual;
+  argumentos_responde_checagem_vizinhos.buffer_saida = buffer_saida;
+  argumentos_responde_checagem_vizinhos.buffer_saida_mutex = &buffer_saida_mutex;
+  argumentos_responde_checagem_vizinhos.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+
+  pthread_create(&responde_checagem_vizinhos_thread_id,
+                 NULL,
+                 responde_checagem_vizinhos,
+                 (void*)&argumentos_responde_checagem_vizinhos);
+  /***************************** Responde Checagem de Vizinhos */
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
@@ -301,6 +319,7 @@ int main(int argc, char* argv[]) {
   pthread_join(envia_vetor_distancias_id, NULL);
   pthread_join(atualiza_tabela_roteamento_vetor_saltos_id, NULL);
   pthread_join(checador_vizinhos_thread_id, NULL);
+  pthread_join(responde_checagem_vizinhos_thread_id, NULL);
   /*************************************************************/
   return 0;
 };
