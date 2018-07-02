@@ -102,7 +102,7 @@ void converte_char_para_pacote(char *cadeia, pacote_t *pacote) {
   pacote->origem |= cadeia[6] << 16;
   pacote->origem |= cadeia[7] << 8;
   pacote->origem |= cadeia[8];
-  strncpy(pacote->mensagem, cadeia + 9, TAMANHO_MENSAGEM_PACOTE);
+  memcpy(pacote->mensagem, cadeia + 9, TAMANHO_MENSAGEM_PACOTE);
 };
 
 /* Função única para adicionar pacote ao buffer de saída. Retorna 0 se falhou
