@@ -27,6 +27,7 @@ void *transmissor(void *args) {
   int proximo_salto_envio; // Id do nó do próximo salto.
   char mensagem_log[5000]; // Variável auxiliar para printar coisas no log. Ignore.
   char cadeia_caracteres_pacote[TAMANHO_TOTAL_PACOTE]; // Espaço para colocar a cadeia de caracteres do pacote.
+  char string_informacoes_pacote[5000]; // Variável auxiliar
 
   do {
     /* Pega o pacote no buffer de saída */
@@ -44,7 +45,8 @@ void *transmissor(void *args) {
     /* Busca o próximo salto para o nó de destino do pacote */
     proximo_salto_envio = argumentos->vetor_saltos[pacote_envio.destino];
     if (proximo_salto_envio == -1) {
-      sprintf(mensagem_log, "[TRANSMISSOR] Tentativa de envio para [%d] com pacote do tipo [%d] falhou. O próximo salto ainda não foi descoberto.", pacote_envio.destino, pacote_envio.tipo);
+      informacoes_pacote(pacote_envio, string_informacoes_pacote);
+      sprintf(mensagem_log, "[TRANSMISSOR] Tentativa de envio de pacote falhou. O próximo salto ainda não foi descoberto. {%s}", string_informacoes_pacote);
       grava_log(mensagem_log);
       continue;
     }
@@ -57,13 +59,12 @@ void *transmissor(void *args) {
                  argumentos->portas_vizinhos[proximo_salto_envio]);
 
     /* Salva no log que o pacote foi enviado */
+    informacoes_pacote(pacote_envio, string_informacoes_pacote);
     sprintf(
       mensagem_log,
-      "[TRANSMISSOR] Pacote do tipo [%d] enviado para [%d] com destino a [%d] e com a mensagem [%s].",
-      pacote_envio.tipo,
+      "[TRANSMISSOR] Pacote enviado para [%d]. {%s}",
       proximo_salto_envio,
-      pacote_envio.destino,
-      pacote_envio.mensagem
+      string_informacoes_pacote
     );
     grava_log(mensagem_log);
   } while(1);

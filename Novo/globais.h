@@ -155,4 +155,64 @@ void imprime_tabela_roteamento(int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUAN
   }
 }
 
+/* Função que coloca informações do pacote na string saida */
+void informacoes_pacote(pacote_t pacote, char *saida) {
+  char string_distancias[500]; // Variável auxiliar
+  int distancias[10]; // Variável auxiliar
+  int inicio_mensagem; // Variável auxiliar
+
+  switch (pacote.tipo) {
+    case TIPO_PACOTE_VAZIO:
+      sprintf(saida, "Pacote vazio");
+      break;
+    case TIPO_PACOTE_MENSAGEM_USUARIO:
+      sprintf(saida,
+              "Mensagem de usuário - Origem: [%d] - Mensagem: [%s]",
+              pacote.origem,
+              pacote.mensagem);
+      break;
+    case TIPO_PACOTE_CONFIRMACAO_MENSAGEM_USUARIO:
+      sprintf(saida,
+              "Confirmação de recebimento de mensagem - Origem: [%d]",
+              pacote.origem);
+      break;
+    case TIPO_PACOTE_VETOR_DISTANCIA:
+      inicio_mensagem = TAMANHO_TOTAL_PACOTE - TAMANHO_MENSAGEM_PACOTE;
+      // 10 é um número arbitrário pra não encher o log de números inúteis
+      for (int i = 0; i < 10; i++) {
+        distancias[i] = ((int)pacote.mensagem[inicio_mensagem + i * 4]) << 24;
+        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]) << 16;
+        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]) << 8;
+        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]);
+      }
+      sprintf(string_distancias,
+              "[0: %d][1: %d][2: %d][3: %d][4: %d][5: %d][6: %d][7: %d][8: %d][9: %d]",
+              distancias[0], distancias[1], distancias[2], distancias[3],
+              distancias[4], distancias[5], distancias[6], distancias[7],
+              distancias[8], distancias[9]);
+      sprintf(saida,
+              "Vetor distância - Origem: [%d] - Distâncias: [%s]",
+              pacote.origem,
+              string_distancias);
+      break;
+    case TIPO_PACOTE_CONFIRMACAO_VETOR_DISTANCIA:
+      sprintf(saida,
+              "Confirmação de recebimento de vetor distância - Origem: [%d]",
+              pacote.origem);
+      break;
+    case TIPO_PACOTE_CHECA_NO_ATIVO:
+      sprintf(saida,
+              "Checagem de vizinho - Origem: [%d]",
+              pacote.origem);
+      break;
+    case TIPO_PACOTE_CONFIRMACAO_NO_ATIVO:
+      sprintf(saida,
+              "Resposta de checagem de vizinho - Origem: [%d]",
+              pacote.origem);
+      break;
+    default:
+      sprintf(saida, "Pacote inválido");
+  }
+}
+
 #endif
