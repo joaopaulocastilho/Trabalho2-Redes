@@ -6,6 +6,7 @@
 #include "recebimento_impressao_mensagem.c"
 #include "envia_vetor_distancias.c"
 #include "atualiza_tabela_roteamento_vetor_saltos.c"
+#include "checador_vizinhos.c"
 
 /** Função que le o arquivo roteador.config e grava os dados nos vetores bidimensionais portas_roteadores e enderecos_roteadores passados por parâmetro. */
 int le_roteadores(int portas_roteadores[QUANTIDADE_MAXIMA_NOS], char enderecos_roteadores[QUANTIDADE_MAXIMA_NOS][TAMANHO_MAXIMO_ENDERECO]) {
@@ -131,6 +132,12 @@ int main(int argc, char* argv[]) {
   int ultimo_pacote_buffer_entrada = 0;
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
+  // Vetor de checagens de vizinnhos
+  printf("Inicializando vetor de resposta de checagem dos vizinhos...");
+  pthread_mutex_t respostas_checagem_vizinhos_mutex;
+  pthread_mutex_init(&respostas_checagem_vizinhos_mutex, NULL);
+  char respostas_checagem_vizinhos[QUANTIDADE_MAXIMA_NOS];
+
   printf("Iniciando threads...\n");
 
   /* Inicia o transmissor **************************************/
@@ -249,6 +256,31 @@ int main(int argc, char* argv[]) {
                  (void*)&argumentos_atrvs);
   /********************** Atualiza a Tabela de Roteamento (ATR) */
 
+  /* Checador de Vizinhos **************************************/
+  pthread_t checador_vizinhos_thread_id;
+  struct argumentos_checador_vizinhos_struct argumentos_checador_vizinhos;
+
+  // Parâmetros referentes ao respostas_checagem_vizinhos
+  argumentos_checador_vizinhos.respostas_checagem_vizinhos_mutex = &respostas_checagem_vizinhos_mutex;
+  argumentos_checador_vizinhos.respostas_checagem_vizinhos = respostas_checagem_vizinhos;
+  argumentos_checador_vizinhos.quantidade_vizinhos = quantidade_vizinhos;
+  argumentos_checador_vizinhos.vizinhos = vizinhos;
+  // Parâmeteros do buffer de saída
+  argumentos_checador_vizinhos.buffer_saida = buffer_saida;
+  argumentos_checador_vizinhos.buffer_saida_mutex = &buffer_saida_mutex;
+  argumentos_checador_vizinhos.ultimo_pacote_buffer_saida = &ultimo_pacote_buffer_saida;
+  // Parâmetros da tabela de roteamento
+  argumentos_checador_vizinhos.tabela_roteamento_mutex = &tabela_roteamento_mutex;
+  argumentos_checador_vizinhos.tabela_roteamento = tabela_roteamento;
+  // Parâmetros gerais
+  argumentos_checador_vizinhos.id_nodo_atual = id_nodo_atual;
+
+  pthread_create(&checador_vizinhos_thread_id,
+                 NULL,
+                 checador_vizinhos,
+                 (void*)&argumentos_checador_vizinhos);
+  /************************************** Checador de Vizinhos */
+
   /* Encerra as THREADS ****************************************/
   pthread_join(transmissor_thread_id, NULL);
   pthread_join(receptor_thread_id, NULL);
@@ -257,6 +289,7 @@ int main(int argc, char* argv[]) {
   pthread_join(recebimento_impressao_mensagem_thread_id, NULL);
   pthread_join(envia_vetor_distancias_id, NULL);
   pthread_join(atualiza_tabela_roteamento_vetor_saltos_id, NULL);
+  pthread_join(checador_vizinhos_thread_id, NULL);
   /*************************************************************/
   return 0;
 };

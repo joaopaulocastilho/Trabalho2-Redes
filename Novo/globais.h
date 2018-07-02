@@ -31,6 +31,7 @@
 
 #define INFINITO 112345678
 #define TEMPO_PAUSA_EVD 5 // Tempo (em segundos) em que vamos mandar o vetor distâncias para os vizinhos.
+#define TEMPO_PAUSA_RESPOSTA_CHECAGEM_VIZINHOS 5 // Tempo, em segundos, que o checador de vizinhos espera pela resposta dos vizinhos
 
 // Pacote: |Destino 4B|Tipo 1B|Origem 4B|Payload ?B|
 typedef struct {
