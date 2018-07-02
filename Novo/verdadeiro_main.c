@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
   int ultimo_pacote_buffer_entrada = 0;
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
-  // Vetor de checagens de vizinnhos
+  // Vetor de respostas de checagens de vizinnhos
   printf("Inicializando vetor de resposta de checagem dos vizinhos...");
   pthread_mutex_t respostas_checagem_vizinhos_mutex;
   pthread_mutex_init(&respostas_checagem_vizinhos_mutex, NULL);
@@ -206,6 +206,9 @@ int main(int argc, char* argv[]) {
   argumentos_redirecionador.checagens_recebidas_mutex = &checagens_recebidas_mutex;
   argumentos_redirecionador.ultima_checagem_recebida = &ultima_checagem_recebida;
   argumentos_redirecionador.checagens_recebidas = checagens_recebidas;
+  // Parâmetros do vetor de respostas de checagens
+  argumentos_redirecionador.respostas_checagem_vizinhos_mutex = &respostas_checagem_vizinhos_mutex;
+  argumentos_redirecionador.respostas_checagem_vizinhos = respostas_checagem_vizinhos;
 
   pthread_create(&redirecionador_thread_id,
                  NULL,

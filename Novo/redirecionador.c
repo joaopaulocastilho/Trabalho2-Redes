@@ -25,11 +25,15 @@ struct argumentos_redirecionador_struct {
   pthread_mutex_t *checagens_recebidas_mutex;
   int *ultima_checagem_recebida;
   pacote_t *checagens_recebidas;
+
+  pthread_mutex_t *respostas_checagem_vizinhos_mutex;
+  char *respostas_checagem_vizinhos;
 };
 
 int adiciona_pacote_buffer_impressao(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
 int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
 int adiciona_pacote_checagens_recebidas(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
+void adiciona_pacote_resposta_checagem_vizinho(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
 
 void *redirecionador(void *args) {
   struct argumentos_redirecionador_struct* argumentos = (struct argumentos_redirecionador_struct*) args;
@@ -124,6 +128,20 @@ void *redirecionador(void *args) {
       grava_log(mensagem_log);
       continue;
     }
+
+    /* Respostas de checagens de vizinhos */
+    if (pacote_redirecionar.tipo == TIPO_PACOTE_CONFIRMACAO_NO_ATIVO) {
+      adiciona_pacote_resposta_checagem_vizinho(
+        pacote_redirecionar,
+        argumentos
+      );
+      sprintf(mensagem_log,
+              "[REDIRECIONADOR] Pacote de origem [%d] e tipo [%d] adicionado às respostas de checagens recebidas.",
+              pacote_redirecionar.origem,
+              pacote_redirecionar.tipo);
+      grava_log(mensagem_log);
+      continue;
+    }
   } while (1);
 }
 
@@ -203,6 +221,15 @@ int adiciona_pacote_checagens_recebidas(
     (*argumentos->ultima_checagem_recebida) = proximo_ultima_checagem_recebida;
   pthread_mutex_unlock(argumentos->checagens_recebidas_mutex);
   return 1;
+};
+
+void adiciona_pacote_resposta_checagem_vizinho(
+  pacote_t pacote,
+  struct argumentos_redirecionador_struct *argumentos) {
+
+  pthread_mutex_lock(argumentos->respostas_checagem_vizinhos_mutex);
+    argumentos->respostas_checagem_vizinhos[pacote.origem] = 1;
+  pthread_mutex_unlock(argumentos->respostas_checagem_vizinhos_mutex);
 };
 
 #endif
