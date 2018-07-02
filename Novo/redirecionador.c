@@ -17,11 +17,17 @@ struct argumentos_redirecionador_struct {
   pacote_t *buffer_impressao;
   pthread_mutex_t *buffer_impressao_mutex;
   int *ultimo_pacote_buffer_impressao;
+  // Parâmetros do buffer do Vetor Distância
+  pacote_t *buffer_vetor_distancia;
+  pthread_mutex_t *buffer_vetor_distancia_mutex;
+  int *ultimo_pacote_buffer_vetor_distancia;
 };
 
 int adiciona_pacote_buffer_impressao(
   pacote_t pacote,
   struct argumentos_redirecionador_struct *argumentos);
+
+  int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos);
 
 void *redirecionador(void *args) {
   struct argumentos_redirecionador_struct* argumentos = (struct argumentos_redirecionador_struct*) args;
@@ -71,6 +77,27 @@ void *redirecionador(void *args) {
       grava_log(mensagem_log);
       continue;
     }
+
+    /* Mensagem de Vetor de Distâncias */
+    if (pacote_redirecionar.tipo == TIPO_PACOTE_VETOR_DISTANCIA) {
+      int adicionou_pacote = adiciona_pacote_buffer_vetor_distancia(pacote_redirecionar, argumentos);
+      // Imprime no log se adicionou ou não o pacotu ao buffer de Vetores Distâncias Recebidos
+      if (adicionou_pacote) {
+        sprintf(mensagem_log,
+          "[REDIRECIONADOR] Pacote de origem [%d] e tipo [%d] adicionado ao buffer de Vetores Distâncias Recebidos.",
+          pacote_redirecionar.origem,
+          pacote_redirecionar.tipo);
+          grava_log(mensagem_log);
+          continue;
+        }
+
+        sprintf(mensagem_log,
+          "[REDIRECIONADOR] Falha ao tentar adicionar pacote de origem [%d] e tipo [%d] ao buffer de Vetores Distâncias Recebidos.",
+          pacote_redirecionar.origem,
+          pacote_redirecionar.tipo);
+          grava_log(mensagem_log);
+          continue;
+    }
   } while (1);
 }
 
@@ -100,5 +127,29 @@ int adiciona_pacote_buffer_impressao(
   pthread_mutex_unlock(argumentos->buffer_impressao_mutex);
   return 1;
 };
+
+int adiciona_pacote_buffer_vetor_distancia(pacote_t pacote, struct argumentos_redirecionador_struct *argumentos) {
+  pacote_t ultimo_pacote_vetor; // variável auxiliar
+  int proximo_ultimo_pacote_vetor_distancia;
+
+  pthread_mutex_lock(argumentos->buffer_vetor_distancia_mutex);
+  // Pega índice do próximo espaço para por
+  proximo_ultimo_pacote_vetor_distancia = *(argumentos->ultimo_pacote_buffer_vetor_distancia) + 1;
+  proximo_ultimo_pacote_vetor_distancia %= TAMANHO_BUFFER_VETOR_DISTANCIA;
+
+  // Pega pacote que está na posição desejada
+  ultimo_pacote_vetor = argumentos->buffer_vetor_distancia[proximo_ultimo_pacote_vetor_distancia];
+
+  if (ultimo_pacote_vetor.tipo != TIPO_PACOTE_VAZIO) {
+    // Vetor cheio
+    pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
+    return 0;
+  }
+
+  argumentos->buffer_vetor_distancia[proximo_ultimo_pacote_vetor_distancia] = pacote;
+  (*argumentos->ultimo_pacote_buffer_vetor_distancia) = proximo_ultimo_pacote_vetor_distancia;
+  pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
+  return 1;
+}
 
 #endif

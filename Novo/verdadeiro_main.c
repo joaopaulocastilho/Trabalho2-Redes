@@ -109,6 +109,16 @@ int main(int argc, char* argv[]) {
     buffer_impressao[i].tipo = TIPO_PACOTE_VAZIO;
   }
 
+  // Buffer de Vetor Distância
+  printf("Inicializando buffer de Vetor Distância...\n");
+  pacote_t buffer_vetor_distancia[TAMANHO_BUFFER_VETOR_DISTANCIA];
+  pthread_mutex_t buffer_vetor_distancia_mutex;
+  pthread_mutex_init(&buffer_vetor_distancia_mutex, NULL);
+  int ultimo_pacote_buffer_vetor_distancia = -1;
+  for (int i = 0; i < TAMANHO_BUFFER_VETOR_DISTANCIA; i++) {
+    buffer_vetor_distancia[i].tipo = TIPO_PACOTE_VAZIO;
+  }
+
   // Buffer de entrada
   printf("Inicializando buffer de entrada...\n");
   pacote_t buffer_entrada[TAMANHO_BUFFER_ENTRADA];
@@ -169,6 +179,10 @@ int main(int argc, char* argv[]) {
   argumentos_redirecionador.buffer_impressao = buffer_impressao;
   argumentos_redirecionador.buffer_impressao_mutex = &buffer_impressao_mutex;
   argumentos_redirecionador.ultimo_pacote_buffer_impressao = &ultimo_pacote_buffer_impressao;
+  // Parâmetros do buffer de Vetor Distância
+  argumentos_redirecionador.buffer_vetor_distancia = buffer_vetor_distancia;
+  argumentos_redirecionador.buffer_vetor_distancia_mutex = &buffer_vetor_distancia_mutex;
+  argumentos_redirecionador.ultimo_pacote_buffer_vetor_distancia = &ultimo_pacote_buffer_vetor_distancia;
 
   pthread_create(&redirecionador_thread_id,
                  NULL,
