@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
   inicializa_tabela_roteamento(id_nodo_atual, &quantidade_vizinhos, vizinhos, tabela_roteamento, vetor_saltos);
 
   // Log
+  sprintf(caminho_arquivo_log, "./log%d.txt", id_nodo_atual);
   pthread_mutex_init(&log_mutex, NULL);
 
   // Buffer de saída

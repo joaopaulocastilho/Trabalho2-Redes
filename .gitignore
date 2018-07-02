@@ -1,4 +1,4 @@
 
 *.out
 
-Novo/log\.txt
+*\.txt

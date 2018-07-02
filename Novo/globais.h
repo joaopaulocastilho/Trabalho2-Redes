@@ -44,11 +44,13 @@ typedef struct {
   int id, peso;
 } vizinho_t;
 
+char caminho_arquivo_log[100];
+
 pthread_mutex_t log_mutex;
 
 int grava_log(char *mensagem) {
   FILE *file;
-  file = fopen("./log.txt", "a");
+  file = fopen(caminho_arquivo_log, "a");
   pthread_mutex_lock(&log_mutex);
     if (DEBUG_PRINT_LOG) {
       printf("\033[1m\033[32m[LOG]\033[0m%s\n", mensagem);
