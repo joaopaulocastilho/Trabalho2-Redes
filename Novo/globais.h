@@ -167,13 +167,15 @@ void informacoes_pacote(pacote_t pacote, char *saida) {
       break;
     case TIPO_PACOTE_MENSAGEM_USUARIO:
       sprintf(saida,
-              "Mensagem de usuário - Origem: [%d] - Mensagem: [%s]",
+              "Mensagem de usuário - Destino: [%d] - Origem: [%d] - Mensagem: [%s]",
+              pacote.destino,
               pacote.origem,
               pacote.mensagem);
       break;
     case TIPO_PACOTE_CONFIRMACAO_MENSAGEM_USUARIO:
       sprintf(saida,
-              "Confirmação de recebimento de mensagem - Origem: [%d]",
+              "Confirmação de recebimento de mensagem - Destino: [%d] - Origem: [%d]",
+              pacote.destino,
               pacote.origem);
       break;
     case TIPO_PACOTE_VETOR_DISTANCIA:
@@ -191,23 +193,27 @@ void informacoes_pacote(pacote_t pacote, char *saida) {
               distancias[4], distancias[5], distancias[6], distancias[7],
               distancias[8], distancias[9]);
       sprintf(saida,
-              "Vetor distância - Origem: [%d] - Distâncias: [%s]",
+              "Vetor distância - Destino: [%d] - Origem: [%d] - Distâncias: [%s]",
+              pacote.destino,
               pacote.origem,
               string_distancias);
       break;
     case TIPO_PACOTE_CONFIRMACAO_VETOR_DISTANCIA:
       sprintf(saida,
-              "Confirmação de recebimento de vetor distância - Origem: [%d]",
+              "Confirmação de recebimento de vetor distância - Destino: [%d] - Origem: [%d]",
+              pacote.destino,
               pacote.origem);
       break;
     case TIPO_PACOTE_CHECA_NO_ATIVO:
       sprintf(saida,
-              "Checagem de vizinho - Origem: [%d]",
+              "Checagem de vizinho - Destino: [%d] - Origem: [%d]",
+              pacote.destino,
               pacote.origem);
       break;
     case TIPO_PACOTE_CONFIRMACAO_NO_ATIVO:
       sprintf(saida,
-              "Resposta de checagem de vizinho - Origem: [%d]",
+              "Resposta de checagem de vizinho - Destino: [%d] - Origem: [%d]",
+              pacote.destino,
               pacote.origem);
       break;
     default:
