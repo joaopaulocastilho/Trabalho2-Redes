@@ -70,6 +70,7 @@
           pacote_recebido.mensagem
         );
       }
+      continue;
      }
      // Guarda o pacote no buffer de entrada com todos os pacotes
      pthread_mutex_lock(argumentos->buffer_entrada_mutex);
