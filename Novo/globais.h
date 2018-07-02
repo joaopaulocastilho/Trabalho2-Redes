@@ -10,7 +10,7 @@
 #include <pthread.h> // Para usar as threads
 #include <unistd.h> // Para usar mutex
 
-#define DEBUG_PRINT_LOG 1 // Tudo que vai pro LOG também é imprimido no console
+#define DEBUG_PRINT_LOG 0 // Tudo que vai pro LOG também é imprimido no console
 
 #define TIPO_PACOTE_VAZIO 0
 #define TIPO_PACOTE_MENSAGEM_USUARIO 1

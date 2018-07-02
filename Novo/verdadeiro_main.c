@@ -231,6 +231,7 @@ int main(int argc, char* argv[]) {
   pthread_t atualiza_tabela_roteamento_vetor_saltos_id;
   struct argumentos_atrvs_struct argumentos_atrvs;
 
+  argumentos_atrvs.id_nodo_atual = id_nodo_atual;
   // Informações sobre a tabela de roteamento
   argumentos_atrvs.tabela_roteamento = tabela_roteamento;
   argumentos_atrvs.tabela_roteamento_mutex = &tabela_roteamento_mutex;
