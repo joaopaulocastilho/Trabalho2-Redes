@@ -30,7 +30,7 @@
 #define QUANTIDADE_MAXIMA_NOS 50
 #define TAMANHO_MAXIMO_ENDERECO 20
 
-#define INFINITO 112345678
+#define INFINITO 286331153
 #define TEMPO_PAUSA_EVD 5 // Tempo (em segundos) em que vamos mandar o vetor distâncias para os vizinhos.
 #define TEMPO_PAUSA_RESPOSTA_CHECAGEM_VIZINHOS 5 // Tempo, em segundos, que o checador de vizinhos espera pela resposta dos vizinhos
 
