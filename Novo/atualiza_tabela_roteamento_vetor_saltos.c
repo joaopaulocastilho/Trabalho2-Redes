@@ -57,7 +57,7 @@
      }
      pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
      // Atualizar o vetor distância do nó atual
-     atualiza_tabela_roteamento(nodo_atual, argumentos->tabela_roteamento, argumentos->tabela_roteamento_mutex);
+     atualiza_vetor_distancia(nodo_atual, argumentos->tabela_roteamento, argumentos->tabela_roteamento_mutex);
      // Atualizar o vetor de saltos
      atualiza_vetor_saltos(argumentos->tabela_roteamento, argumentos->tabela_roteamento_mutex, argumentos->vetor_saltos, argumentos->vetor_saltos_mutex, nodo_atual);
    }

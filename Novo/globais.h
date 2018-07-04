@@ -132,16 +132,31 @@ int enfileira_pacote_para_envio(pacote_t pacote,
 }
 
 // Recebe o nodo que está chamando a função e a tabela de roteamento para atualizar as distância de nodo_atual.
-void atualiza_tabela_roteamento(int nodo_atual, int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS], pthread_mutex_t *tabela_roteamento_mutex) {
-  int i = nodo_atual, j, k, custo, menor = INFINITO;
+void atualiza_vetor_distancia(int id_nodo_atual,
+                              int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUANTIDADE_MAXIMA_NOS],
+                              pthread_mutex_t *tabela_roteamento_mutex) {
+  int menor_distancia;
+
   pthread_mutex_lock(tabela_roteamento_mutex);
-  for (j = 0; j < QUANTIDADE_MAXIMA_NOS; j++) {
-    for (menor = INFINITO, k = 0; k < QUANTIDADE_MAXIMA_NOS; k++) {
-      custo = tabela_roteamento[i][k] + tabela_roteamento[k][j];
-      if (custo < menor) menor = custo;
+    for (int no_destino = 0; no_destino < QUANTIDADE_MAXIMA_NOS; no_destino++) {
+      menor_distancia = INFINITO;
+
+      // Se for pra si mesmo, o próximo salto é o próprio nó
+      if (no_destino == id_nodo_atual) {
+        tabela_roteamento[id_nodo_atual][no_destino] = 0;
+        continue;
+      }
+
+      for (int linha = 0; linha < QUANTIDADE_MAXIMA_NOS; linha++) {
+        int distancia_pelo_no_linha = tabela_roteamento[linha][id_nodo_atual] + tabela_roteamento[linha][no_destino];
+
+        // Se a distância for menor e o próximo salto não for o próprio nó
+        if (distancia_pelo_no_linha < menor_distancia) {
+          menor_distancia = distancia_pelo_no_linha;
+        }
+      }
+      tabela_roteamento[id_nodo_atual][no_destino] = menor_distancia;
     }
-    tabela_roteamento[i][j] = menor;
-  }
   pthread_mutex_unlock(tabela_roteamento_mutex);
 }
 
