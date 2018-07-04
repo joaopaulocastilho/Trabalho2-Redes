@@ -54,6 +54,14 @@ void* receptor(void *args) {
 
     // Se for pacote para reencaminhamento
     if (pacote_recebido.destino != nodo_atual) {
+
+      // Solução paliativa pro problema de encaminhamento infinito
+      if (pacote_recebido.origem == nodo_atual) {
+        sprintf(mensagem_log, "[RECEPTOR] Pacote descartado por conter origem igual ao id do nó. Info: { %s }.", descricao_pacote);
+        grava_log(mensagem_log);
+        continue;
+      }
+
       inseriu_buffer_saida = enfileira_pacote_para_envio(pacote_recebido, argumentos->buffer_saida, argumentos->buffer_saida_mutex, argumentos->indice_ultimo_pacote_buffer_saida);
 
       if (inseriu_buffer_saida) {
