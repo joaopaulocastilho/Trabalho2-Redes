@@ -87,7 +87,7 @@ pacote_t cria_pacote_resposta(pacote_t pacote_recebimento, int id_nodo_atual) {
 };
 
 void imprime_pacote(pacote_t pacote_recebido) {
-  printf("Pacote recebido: Origem [%d] - Mensagem: [%s]\n",
+  printf("Mensagem recebida de [%d]: [%s]\n",
          pacote_recebido.origem,
          pacote_recebido.mensagem);
 };

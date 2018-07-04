@@ -31,9 +31,10 @@ void *interface_envio_mensagem(void *args) {
   char mensagem_gravar_log[1000];
 
   do {
-    printf("Envio de mensagem. Envie uma mensagem no formato: 1<Mensagem, onde 1 é o nó destino e \"Mensagem\" é a mensagem que quer enviar.\nDigite: ");
+    printf("Envio de mensagem. Envie uma mensagem no formato: 1<Mensagem, onde 1 é o nó destino e \"Mensagem\" é a mensagem que quer enviar.\n");
     scanf("%d<", &roteador_destino);
     fgets(mensagem_envio, tamanho_maximo_mensagem_entrada, stdin);
+    mensagem_envio[strlen(mensagem_envio) - 1] = '\0';
     mensagem_envio[TAMANHO_MENSAGEM_PACOTE - 1] = '\0';
 
     /* Prepara o pacote */
