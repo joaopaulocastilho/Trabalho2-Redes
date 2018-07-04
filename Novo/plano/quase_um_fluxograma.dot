@@ -29,19 +29,20 @@ digraph {
     vetor_saltos [label="Vetor de Saltos"]
     entrada_usuario [label="Entrada do usuário"]
     saida_usuario [label="Saida do Usuário"]
+    enfileira_pacote_para_envio [label="Enfileirador de Pacotes"]
   }
 
   { enderecos_roteadores portas_roteadores vetor_saltos buffer_saida } -> transmissor
-  receptor -> { buffer_saida buffer_entrada }
+  receptor -> { enfileira_pacote_para_envio buffer_entrada }
   portas_roteadores -> receptor
-  interface_envio_mensagem -> { buffer_saida }
+  interface_envio_mensagem -> { enfileira_pacote_para_envio }
   { buffer_entrada } -> redirecionador -> { buffer_impressao buffer_vetor_distancia checagens_recebidas respostas_checagens_vizinhos }
-  buffer_impressao -> recebimento_impressao_mensagem -> { buffer_saida saida_usuario }
-  { tabela_roteamento } -> envia_vetor_distancias -> buffer_saida
+  buffer_impressao -> recebimento_impressao_mensagem -> { enfileira_pacote_para_envio saida_usuario }
+  { tabela_roteamento } -> envia_vetor_distancias -> enfileira_pacote_para_envio
   buffer_vetor_distancia -> atualiza_tabela_roteamento_vetor_saltos -> { tabela_roteamento atualiza_vetor_saltos }
   atualiza_vetor_saltos -> vetor_saltos
-  respostas_checagens_vizinhos -> checador_vizinhos -> { buffer_saida tabela_roteamento }
-  checagens_recebidas -> responde_checagem_vizinhos -> buffer_saida
+  respostas_checagens_vizinhos -> checador_vizinhos -> { enfileira_pacote_para_envio tabela_roteamento }
+  checagens_recebidas -> responde_checagem_vizinhos -> enfileira_pacote_para_envio
   entrada_usuario -> interface_envio_mensagem
-
+  enfileira_pacote_para_envio -> buffer_saida
 }
