@@ -179,13 +179,12 @@ void informacoes_pacote(pacote_t pacote, char *saida) {
               pacote.origem);
       break;
     case TIPO_PACOTE_VETOR_DISTANCIA:
-      inicio_mensagem = TAMANHO_TOTAL_PACOTE - TAMANHO_MENSAGEM_PACOTE;
       // 10 é um número arbitrário pra não encher o log de números inúteis
       for (int i = 0; i < 10; i++) {
-        distancias[i] = ((int)pacote.mensagem[inicio_mensagem + i * 4]) << 24;
-        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]) << 16;
-        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]) << 8;
-        distancias[i] |= ((int)pacote.mensagem[inicio_mensagem + i * 4 + 1]);
+        distancias[i] = ((int)pacote.mensagem[i * 4]) << 24;
+        distancias[i] |= ((int)pacote.mensagem[i * 4 + 1]) << 16;
+        distancias[i] |= ((int)pacote.mensagem[i * 4 + 2]) << 8;
+        distancias[i] |= ((int)pacote.mensagem[i * 4 + 3]);
       }
       sprintf(string_distancias,
               "[0: %d][1: %d][2: %d][3: %d][4: %d][5: %d][6: %d][7: %d][8: %d][9: %d]",
