@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
   memset(buffer_entrada, 0, TAMANHO_BUFFER_ENTRADA * sizeof(pacote_t));
 
   // Vetor de respostas de checagens de vizinnhos
-  printf("Inicializando vetor de resposta de checagem dos vizinhos...");
+  printf("Inicializando vetor de resposta de checagem dos vizinhos...\n");
   pthread_mutex_t respostas_checagem_vizinhos_mutex;
   pthread_mutex_init(&respostas_checagem_vizinhos_mutex, NULL);
   char respostas_checagem_vizinhos[QUANTIDADE_MAXIMA_NOS];

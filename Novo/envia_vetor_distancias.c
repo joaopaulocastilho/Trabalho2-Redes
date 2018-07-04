@@ -25,6 +25,7 @@
    char string_descricao_pacote[500]; // Variável auxiliar
 
    pacote_t pacote_vetor_distancia;
+
    while (1) {
      // Vamos crirar um pacote para cada vizinho
      for (i = 0; i < quantidade_vizinhos; i++) {
@@ -35,10 +36,10 @@
        pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
        // Coloca a distância até os outros nós na mensagem do pacote
        for (j = 0; j < TAMANHO_MENSAGEM_PACOTE / 4; j++) {
-         pacote_vetor_distancia.mensagem[4 * j] = (char)argumentos->tabela_roteamento[nodo_atual][j] >> 24;
-         pacote_vetor_distancia.mensagem[4 * j + 1] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 16;
-         pacote_vetor_distancia.mensagem[4 * j + 2] |= (char)argumentos->tabela_roteamento[nodo_atual][j] >> 8;
-         pacote_vetor_distancia.mensagem[4 * j + 3] |= (char)argumentos->tabela_roteamento[nodo_atual][j];
+         pacote_vetor_distancia.mensagem[4 * j] = (char)(argumentos->tabela_roteamento[nodo_atual][j] >> 24);
+         pacote_vetor_distancia.mensagem[4 * j + 1] |= (char)(argumentos->tabela_roteamento[nodo_atual][j] >> 16);
+         pacote_vetor_distancia.mensagem[4 * j + 2] |= (char)(argumentos->tabela_roteamento[nodo_atual][j] >> 8);
+         pacote_vetor_distancia.mensagem[4 * j + 3] |= (char)(argumentos->tabela_roteamento[nodo_atual][j]);
        }
        pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
 
@@ -51,7 +52,7 @@
       if (inseriu_buffer_saida) {
         sprintf(
           mensagem_log,
-          "[ENVIA VETOR DISTÂNCIA] Pacote colocado no buffer de saída  Info: { %s }.",
+          "[ENVIA VETOR DISTÂNCIA] Pacote colocado no buffer de saída. Info: { %s }.",
           string_descricao_pacote
         );
       } else { // if (inseriu_buffer_saida)

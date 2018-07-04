@@ -25,6 +25,7 @@
    int i, j, nova_distancia;
    pacote_t pacote_vetor_distancia; // Pacote a ser enviado.
    char mensagem_log[5000];
+   char descricao_pacote[5000]; // Variável auxiliar
 
    while (1) {
      /* Pega o pacote no buffer de Vetor Distância */
@@ -35,6 +36,11 @@
        pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
        continue;
      }
+
+     informacoes_pacote(pacote_vetor_distancia, descricao_pacote);
+     sprintf(mensagem_log, "[ATRVS] Retira pacote do buffer de vetor de distância. Info: %s\n", descricao_pacote);
+     grava_log(mensagem_log);
+
      argumentos->buffer_vetor_distancia[indice_primeiro_pacote].tipo = TIPO_PACOTE_VAZIO;
      indice_primeiro_pacote = (indice_primeiro_pacote + 1) % TAMANHO_BUFFER_VETOR_DISTANCIA;
      pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);

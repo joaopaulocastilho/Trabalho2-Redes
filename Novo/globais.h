@@ -49,6 +49,7 @@ typedef struct {
 char caminho_arquivo_log[100];
 
 pthread_mutex_t log_mutex;
+void copia_pacote_para(pacote_t *pacote_destino, pacote_t pacote_origem);
 
 int grava_log(char *mensagem) {
   FILE *file;
@@ -122,7 +123,7 @@ int enfileira_pacote_para_envio(pacote_t pacote,
   if (pacote_checado.tipo != TIPO_PACOTE_VAZIO) {
     retorno = 0;
   } else {
-    buffer_saida[proximo_espaco] = pacote;
+    copia_pacote_para(&buffer_saida[proximo_espaco], pacote);
   }
   *indice_ultimo_pacote_buffer_saida = proximo_espaco;
   pthread_mutex_unlock(buffer_saida_mutex);
@@ -156,10 +157,13 @@ void imprime_tabela_roteamento(int tabela_roteamento[QUANTIDADE_MAXIMA_NOS][QUAN
 }
 
 /* Função que coloca informações do pacote na string saida */
-void informacoes_pacote(pacote_t pacote, char *saida) {
+void informacoes_pacote(pacote_t pacote_parametro, char *saida) {
   char string_distancias[500]; // Variável auxiliar
   int distancias[10]; // Variável auxiliar
   int inicio_mensagem; // Variável auxiliar
+  pacote_t pacote;
+
+  copia_pacote_para(&pacote, pacote_parametro);
 
   switch (pacote.tipo) {
     case TIPO_PACOTE_VAZIO:
@@ -179,7 +183,7 @@ void informacoes_pacote(pacote_t pacote, char *saida) {
               pacote.origem);
       break;
     case TIPO_PACOTE_VETOR_DISTANCIA:
-      // 10 é um número arbitrário pra não encher o log de números inúteis
+      // 10 é um número arbitrário pra não encher o log de números
       for (int i = 0; i < 10; i++) {
         distancias[i] = ((int)pacote.mensagem[i * 4]) << 24;
         distancias[i] |= ((int)pacote.mensagem[i * 4 + 1]) << 16;
@@ -219,5 +223,12 @@ void informacoes_pacote(pacote_t pacote, char *saida) {
       sprintf(saida, "Pacote inválido");
   }
 }
+
+void copia_pacote_para(pacote_t *pacote_destino, pacote_t pacote_origem) {
+  pacote_destino->destino = pacote_origem.destino;
+  pacote_destino->tipo = pacote_origem.tipo;
+  pacote_destino->origem = pacote_origem.origem;
+  memcpy(pacote_destino->mensagem, pacote_origem.mensagem, TAMANHO_MENSAGEM_PACOTE);
+};
 
 #endif
