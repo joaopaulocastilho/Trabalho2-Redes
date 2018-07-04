@@ -31,9 +31,12 @@ pacote_t cria_pacote_checagem(int id_nodo_atual, int id_destino);
 void* checador_vizinhos(void *args) {
   struct argumentos_checador_vizinhos_struct *argumentos = (struct argumentos_checador_vizinhos_struct*)args;
   pacote_t pacote_checagem;
-  int vizinhos_ausentes[QUANTIDADE_MAXIMA_NOS];
   int quantidade_vizinhos_ausentes;
+  int vizinhos_ausentes[QUANTIDADE_MAXIMA_NOS];
+  int vizinhos_reaparecidos[QUANTIDADE_MAXIMA_NOS];
+  int quantidade_vizinhos_reaparecidos;
   char mensagem_log[1000];
+
   do {
     sprintf(mensagem_log, "[CHECADOR VIZINHOS] Criando pacotes de checagem.");
     grava_log(mensagem_log);
@@ -56,24 +59,41 @@ void* checador_vizinhos(void *args) {
     // Dorme
     sleep(TEMPO_PAUSA_RESPOSTA_CHECAGEM_VIZINHOS);
 
-    // Checa quem respondeu
     quantidade_vizinhos_ausentes = 0;
+    quantidade_vizinhos_reaparecidos = 0;
+
+    // Checa quem respondeu
     pthread_mutex_lock(argumentos->respostas_checagem_vizinhos_mutex);
+    pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
       for (int i = 0; i < argumentos->quantidade_vizinhos; i++) {
         int id_vizinho = argumentos->vizinhos[i].id;
 
-        if (!argumentos->respostas_checagem_vizinhos[id_vizinho]) {
+        /* Se respondeu e a distância atual é maior que a distância
+         * original, reseta-a e adiciona o id do vizinho ao vetor de
+         * vizinhos reaparecidos */
+        if (argumentos->respostas_checagem_vizinhos[id_vizinho]) {
+          int distancia_atual = argumentos->tabela_roteamento[argumentos->id_nodo_atual][id_vizinho];
+
+          if (distancia_atual > argumentos->vizinhos[i].peso) {
+            argumentos->tabela_roteamento[argumentos->id_nodo_atual][id_vizinho] = argumentos->vizinhos[i].peso;
+            vizinhos_reaparecidos[quantidade_vizinhos_reaparecidos++] = id_vizinho;
+          }
+        } else { /* Se não respondeu, coloca distância infinita e
+                  * adiciona ao vetor dos vizinhos ausentes */
+          argumentos->tabela_roteamento[argumentos->id_nodo_atual][id_vizinho] = INFINITO;
           vizinhos_ausentes[quantidade_vizinhos_ausentes++] = id_vizinho;
         }
       }
+    pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
     pthread_mutex_unlock(argumentos->respostas_checagem_vizinhos_mutex);
 
-    // Coloca distância infinita pra quem não respondeu
-    pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
-      for (int i = 0; i < quantidade_vizinhos_ausentes; i++) {
-        argumentos->tabela_roteamento[argumentos->id_nodo_atual][vizinhos_ausentes[i]] = INFINITO;
-      }
-    pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
+    // Marca no LOG quem reeapareceu
+    for (int i = 0; i < quantidade_vizinhos_reaparecidos; i++) {
+      sprintf(mensagem_log,
+              "[CHECADOR VIZINHOS] Vizinho [%d] reapareceu. Recebeu distância original.",
+              vizinhos_reaparecidos[i]);
+      grava_log(mensagem_log);
+    }
 
     // Marca no LOG quem não respondeu
     for (int i = 0; i < quantidade_vizinhos_ausentes; i++) {
