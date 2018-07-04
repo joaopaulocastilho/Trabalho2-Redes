@@ -1,0 +1,47 @@
+digraph {
+  node [style="filled" color="Turquoise"]
+  transmissor [label="Transmissor"]
+  receptor [label="Receptor"]
+  responde_checagem_vizinhos [label="Responde Checagens de Vizinhos"]
+  redirecionador [label="Redirecionador"]
+  recebimento_impressao_mensagem [label="Recebimento e Impressão de Imagem"]
+  interface_envio_mensagem [label="Interface de Envio de Mensagem"]
+  envia_vetor_distancias [label="Envia Vetores Distância"]
+  checador_vizinhos [label="Checador de Vizinhos"]
+  atualiza_vetor_saltos [label="Atualiza Vetor de Saltos"]
+  atualiza_tabela_roteamento_vetor_saltos [label="Atualiza Tabela de Roteamento"]
+
+  {
+    node [shape="box" color="darkorchid1"]
+    portas_roteadores [label="Portas dos Vizinhos"]
+    enderecos_roteadores [label="Endereços dos Vizinhos"]
+    tabela_roteamento [label="Tabela de Roteamento"]
+    buffer_saida [label="Buffer de Saída"]
+    buffer_impressao [label="Buffer de Impressão"]
+    buffer_vetor_distancia [label="Buffer de Vetores Distância Recebidos"]
+    buffer_entrada [label="Buffer de Entrada"]
+    respostas_checagens_vizinhos [label="Respostas de Checagens de Vizinhos"]
+    checagens_recebidas [label="Checagens de Vizinhos Recebidas"]
+  }
+
+  {
+    node [shape="polygon" color="chartreuse4"]
+    vetor_saltos [label="Vetor de Saltos"]
+    entrada_usuario [label="Entrada do usuário"]
+    saida_usuario [label="Saida do Usuário"]
+  }
+
+  { enderecos_roteadores portas_roteadores vetor_saltos buffer_saida } -> transmissor
+  receptor -> { buffer_saida buffer_entrada }
+  portas_roteadores -> receptor
+  interface_envio_mensagem -> { buffer_saida }
+  { buffer_entrada } -> redirecionador -> { buffer_impressao buffer_vetor_distancia checagens_recebidas respostas_checagens_vizinhos }
+  buffer_impressao -> recebimento_impressao_mensagem -> { buffer_saida saida_usuario }
+  { tabela_roteamento } -> envia_vetor_distancias -> buffer_saida
+  buffer_vetor_distancia -> atualiza_tabela_roteamento_vetor_saltos -> { tabela_roteamento atualiza_vetor_saltos }
+  atualiza_vetor_saltos -> vetor_saltos
+  respostas_checagens_vizinhos -> checador_vizinhos -> { buffer_saida tabela_roteamento }
+  checagens_recebidas -> responde_checagem_vizinhos -> buffer_saida
+  entrada_usuario -> interface_envio_mensagem
+
+}
