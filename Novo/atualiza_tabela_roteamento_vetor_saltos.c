@@ -31,8 +31,9 @@
      /* Pega o pacote no buffer de Vetor Distância */
      pthread_mutex_lock(argumentos->buffer_vetor_distancia_mutex);
      pacote_vetor_distancia = argumentos->buffer_vetor_distancia[indice_primeiro_pacote];
+
+     // Se não tem pacote para atualizar nada
      if (pacote_vetor_distancia.tipo == TIPO_PACOTE_VAZIO) {
-       // Não tem pacote para atualizar nada
        pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
        continue;
      }
@@ -45,13 +46,13 @@
      indice_primeiro_pacote = (indice_primeiro_pacote + 1) % TAMANHO_BUFFER_VETOR_DISTANCIA;
      pthread_mutex_unlock(argumentos->buffer_vetor_distancia_mutex);
 
-     //Atualizar tabela de roteamento com o novo vetor distância no nó origem que mandou esse pacote
-     i = pacote_vetor_distancia.origem; // Linha da tabela de roteamento que vai atualizar na tabela de roteamento
+     //Atualizar tabela de roteamento com o novo vetor distância do nó descrito na origem do pacote
+     i = pacote_vetor_distancia.origem;
      pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
-     for (j = 0; j < 5; j++) {
-       nova_distancia = pacote_vetor_distancia.mensagem[j * 4] << 24;
-       nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 1] << 16;
-       nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 2] << 8;
+     for (j = 0; j < TAMANHO_MENSAGEM_PACOTE / 4; j++) {
+       nova_distancia = ((int)pacote_vetor_distancia.mensagem[j * 4]) << 24;
+       nova_distancia |= ((int)pacote_vetor_distancia.mensagem[j * 4 + 1]) << 16;
+       nova_distancia |= ((int)pacote_vetor_distancia.mensagem[j * 4 + 2]) << 8;
        nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 3];
        argumentos->tabela_roteamento[i][j] = nova_distancia;
      }

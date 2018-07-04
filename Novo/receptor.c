@@ -58,7 +58,7 @@ void* receptor(void *args) {
 
       if (inseriu_buffer_saida) {
         sprintf(mensagem_log,
-          "[RECEPTOR] Pacote para reencaminhamento adicionado ao buffere de saída. Info: { %s }.", descricao_pacote);
+          "[RECEPTOR] Pacote para reencaminhamento adicionado ao buffer de saída. Info: { %s }.", descricao_pacote);
         grava_log(mensagem_log);
       } else {
         sprintf(mensagem_log,
