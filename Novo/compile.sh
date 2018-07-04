@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc verdadeiro_main.c -pthread
+gcc main.c -pthread
