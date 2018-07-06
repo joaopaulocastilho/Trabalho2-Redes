@@ -48,6 +48,7 @@
 
      //Atualizar tabela de roteamento com o novo vetor distância do nó descrito na origem do pacote
      i = pacote_vetor_distancia.origem;
+    //printf("RECEBEU VETOR DE %d: ", i); //DEBUG
      pthread_mutex_lock(argumentos->tabela_roteamento_mutex);
      for (j = 0; j < TAMANHO_MENSAGEM_PACOTE / 4; j++) {
        nova_distancia = ((int)pacote_vetor_distancia.mensagem[j * 4]) << 24;
@@ -55,7 +56,9 @@
        nova_distancia |= ((int)pacote_vetor_distancia.mensagem[j * 4 + 2]) << 8;
        nova_distancia |= pacote_vetor_distancia.mensagem[j * 4 + 3];
        argumentos->tabela_roteamento[i][j] = nova_distancia;
+      // if (j < 7) printf(" %d", nova_distancia == INFINITO ? -1 : nova_distancia); //DEBUG
      }
+     //printf("\n"); //DEBUG
      pthread_mutex_unlock(argumentos->tabela_roteamento_mutex);
      // Atualizar o vetor distância do nó atual
      atualiza_vetor_distancia(nodo_atual, argumentos->tabela_roteamento, argumentos->tabela_roteamento_mutex);

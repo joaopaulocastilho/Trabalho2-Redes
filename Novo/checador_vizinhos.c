@@ -43,7 +43,7 @@ void* checador_vizinhos(void *args) {
 
     // Limpa vetor de resposta dos vizinhos
     pthread_mutex_lock(argumentos->respostas_checagem_vizinhos_mutex);
-      memset(argumentos->respostas_checagem_vizinhos, 0, QUANTIDADE_MAXIMA_NOS);
+    memset(argumentos->respostas_checagem_vizinhos, 0, QUANTIDADE_MAXIMA_NOS);
     pthread_mutex_unlock(argumentos->respostas_checagem_vizinhos_mutex);
 
     // Envia pacotes de checagens

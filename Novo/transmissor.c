@@ -32,18 +32,22 @@ void *transmissor(void *args) {
   do {
     /* Pega o pacote no buffer de saída */
     pthread_mutex_lock(argumentos->buffer_saida_mutex);
-      pacote_envio = argumentos->buffer_saida[indice_primeiro_pacote];
-      if (pacote_envio.tipo == TIPO_PACOTE_VAZIO) {
-        // Ainda não tem pacote para enviar
-        pthread_mutex_unlock(argumentos->buffer_saida_mutex);
-        continue;
-      }
-      argumentos->buffer_saida[indice_primeiro_pacote].tipo = TIPO_PACOTE_VAZIO;
-      indice_primeiro_pacote = (indice_primeiro_pacote + 1) % TAMANHO_BUFFER_SAIDA;
+    pacote_envio = argumentos->buffer_saida[indice_primeiro_pacote];
+    if (pacote_envio.tipo == TIPO_PACOTE_VAZIO) {
+      // Ainda não tem pacote para enviar
+      pthread_mutex_unlock(argumentos->buffer_saida_mutex);
+      continue;
+    }
+    argumentos->buffer_saida[indice_primeiro_pacote].tipo = TIPO_PACOTE_VAZIO;
+    indice_primeiro_pacote = (indice_primeiro_pacote + 1) % TAMANHO_BUFFER_SAIDA;
     pthread_mutex_unlock(argumentos->buffer_saida_mutex);
 
     /* Busca o próximo salto para o nó de destino do pacote */
-    proximo_salto_envio = argumentos->vetor_saltos[pacote_envio.destino];
+    if (pacote_envio.tipo == TIPO_PACOTE_VETOR_DISTANCIA || pacote_envio.tipo == TIPO_PACOTE_CHECA_NO_ATIVO || pacote_envio.tipo == TIPO_PACOTE_CONFIRMACAO_VETOR_DISTANCIA || pacote_envio.tipo == TIPO_PACOTE_CONFIRMACAO_NO_ATIVO) {
+      proximo_salto_envio = pacote_envio.destino;
+    } else {
+      proximo_salto_envio = argumentos->vetor_saltos[pacote_envio.destino];
+    }
     if (proximo_salto_envio == -1) {
       informacoes_pacote(pacote_envio, string_informacoes_pacote);
       sprintf(mensagem_log, "[TRANSMISSOR] Tentativa de envio de pacote falhou. O próximo salto ainda não foi descoberto. {%s}", string_informacoes_pacote);

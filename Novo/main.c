@@ -243,6 +243,7 @@ int main(int argc, char* argv[]) {
   argumentos_evd.id_nodo_atual = id_nodo_atual;
   argumentos_evd.vizinhos = vizinhos;
   argumentos_evd.quantidade_vizinhos = quantidade_vizinhos;
+  argumentos_evd.vetor_saltos = vetor_saltos;
 
   pthread_create(&envia_vetor_distancias_id,
                  NULL,

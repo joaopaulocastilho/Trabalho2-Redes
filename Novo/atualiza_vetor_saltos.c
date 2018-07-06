@@ -28,12 +28,12 @@ int atualiza_vetor_saltos(int tabela_roteamento[][QUANTIDADE_MAXIMA_NOS],
         continue;
       }
 
-      for (int linha = 0; linha < QUANTIDADE_MAXIMA_NOS; linha++) {
-        int distancia_pelo_no_linha = tabela_roteamento[linha][id_nodo_atual] + tabela_roteamento[linha][no_destino];
+      for (int intermediario = 0; intermediario < QUANTIDADE_MAXIMA_NOS; intermediario++) {
+        int distancia_pelo_no_linha = tabela_roteamento[id_nodo_atual][intermediario] + tabela_roteamento[intermediario][no_destino];
 
         // Se a distância for menor e o próximo salto não for o próprio nó
-        if (distancia_pelo_no_linha < menor_distancia && linha != id_nodo_atual) {
-          vetor_saltos_local[no_destino] = linha;
+        if (distancia_pelo_no_linha < menor_distancia && intermediario != id_nodo_atual) {
+          vetor_saltos_local[no_destino] = intermediario;
           menor_distancia = distancia_pelo_no_linha;
         }
       }
